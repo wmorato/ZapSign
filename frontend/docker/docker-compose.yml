@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:16
+    container_name: zapsign_db
+    restart: always
+    env_file: .env
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    # Novo serviço Redis
+    image: redis:7-alpine
+    container_name: zapsign_redis
+    restart: always
+    ports:
+      - "6379:6379" # Porta padrão do Redis
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: zapsign_backend
+    restart: always
+    env_file: .env
+    depends_on:
+      - db
+      - redis # Adicionado dependência do Redis
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../:/app
+
+volumes:
+  postgres_data:

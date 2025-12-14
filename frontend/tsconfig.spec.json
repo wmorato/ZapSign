@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": [
+      "jest",
+      "node"
+    ],
+    "baseUrl": "./",
+    "paths": {
+      "@angular/platform-browser-dynamic/testing": [
+        "node_modules/@angular/platform-browser-dynamic/testing/testing.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.spec.ts",
+    "src/test/jest-setup.ts"
+  ],
+  "exclude": []
+}

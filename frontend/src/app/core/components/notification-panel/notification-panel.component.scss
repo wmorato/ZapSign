@@ -1,0 +1,111 @@
+/* D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\core\components\notification-panel\notification-panel.component.scss */
+.notification-panel {
+    width: 300px;
+    /* Reduzido para um pop-up de resumo */
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    overflow-y: auto;
+    font-family: Arial, sans-serif;
+
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+
+        h3 {
+            margin: 0;
+            color: #343a40;
+            font-size: 1.2em;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.2s;
+
+            &:hover {
+                color: #dc3545;
+            }
+        }
+    }
+
+    .risk-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dotted #f0f0f0;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            .label {
+                font-weight: 500;
+                color: #555;
+            }
+
+            .value {
+                font-weight: bold;
+                font-size: 1.1em;
+            }
+
+            .total-pending {
+                color: #007bff;
+            }
+        }
+
+        .risk-low {
+            color: #28a745;
+        }
+
+        .risk-medium {
+            color: #ffc107;
+        }
+
+        .risk-high {
+            color: #dc3545;
+        }
+
+        .btn-action {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+
+            &:hover {
+                background-color: #0056b3;
+            }
+        }
+    }
+
+    .loading-message,
+    .error-message,
+    .no-data-message {
+        text-align: center;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+}

@@ -1,0 +1,62 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\document\components\document-list\document-list.component.html -->
+<div class="document-list-container">
+    <h2>Gestão de Documentos</h2>
+
+    <div class="controls-section">
+        <div class="search-group">
+            <input type="text" [(ngModel)]="searchTerm" (input)="applyFilterAndSort()"
+                placeholder="Pesquisar por nome, status, token..." />
+        </div>
+        <div class="actions">
+            <a routerLink="/documents/new" class="btn-primary">Novo Documento</a>
+            <a routerLink="/documents/risk" class="btn-warning">Gestão de Risco</a>
+        </div>
+    </div>
+
+    <div *ngIf="loading" class="loading-message">Carregando documentos...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <div *ngIf="!loading && !error && documents.length === 0" class="no-data-message">
+        Nenhum documento encontrado.
+    </div>
+
+    <table *ngIf="!loading && !error && documents.length > 0">
+        <thead>
+            <tr>
+                <th (click)="sortBy('id')">ID {{ sortColumn === 'id' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }}
+                </th>
+                <th (click)="sortBy('name')">Nome {{ sortColumn === 'name' ? (sortDirection === 'asc' ? '▲' : '▼') : ''
+                    }}</th>
+                <th (click)="sortBy('companyName')">Empresa {{ sortColumn === 'companyName' ? (sortDirection === 'asc' ?
+                    '▲' : '▼') : '' }}</th>
+                <th (click)="sortBy('status')">Status {{ sortColumn === 'status' ? (sortDirection === 'asc' ? '▲' : '▼')
+                    : '' }}</th>
+                <th>Token ZapSign</th>
+                <th (click)="sortBy('created_at')">Criado em {{ sortColumn === 'created_at' ? (sortDirection === 'asc' ?
+                    '▲' : '▼') : '' }}</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let document of documents">
+                <td>{{ document.id }}</td>
+                <td>{{ document.name }}</td>
+                <td>{{ getCompanyName(document.company) }}</td>
+                <td>{{ document.status }}</td>
+                <td>{{ document.token ? '********' : 'N/A' }}</td>
+                <td>{{ document.created_at | date:'short' }}</td>
+                <td class="action-buttons">
+                    <a [routerLink]="['/documents', document.id]" class="btn-info">Ver Detalhes</a>
+                    <a [routerLink]="['/documents', document.id, 'edit']" class="btn-secondary">Editar</a>
+                    <!-- NOVO BOTÃO DE SINCRONIZAÇÃO (CORRIGIDO) -->
+                    <button (click)="syncStatus(document)" class="btn-warning"
+                        [disabled]="!document.token || isDocumentSyncing(document)">
+                        <span *ngIf="isDocumentSyncing(document)">Sincronizando...</span>
+                        <span *ngIf="!isDocumentSyncing(document)">🔄 Sincronizar</span>
+                    </button>
+                    <button (click)="deleteDocument(document.id)" class="btn-danger">Excluir</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

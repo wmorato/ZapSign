@@ -1,0 +1,104 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\document\components\document-reports\document-reports.component.html -->
+<div class="reports-container">
+    <div class="header">
+        <h2>Relatórios de Documentos</h2>
+        <div class="actions">
+            <button (click)="printReport()" class="btn-secondary">Baixar Relatório (Print)</button>
+            <button (click)="downloadDetailedReport()" class="btn-primary" [disabled]="documents.length === 0">Baixar
+                Detalhado (CSV)</button>
+        </div>
+    </div>
+
+    <form [formGroup]="reportForm" (ngSubmit)="onSubmit()" class="filter-form">
+        <div class="form-group">
+            <label for="startDate">Data Início:</label>
+            <input id="startDate" type="date" formControlName="startDate" />
+        </div>
+        <div class="form-group">
+            <label for="endDate">Data Fim:</label>
+            <input id="endDate" type="date" formControlName="endDate" />
+        </div>
+        <button type="submit" class="btn-info" [disabled]="reportForm.invalid || loading">
+            <span *ngIf="loading">Gerando...</span>
+            <span *ngIf="!loading">Gerar Relatório</span>
+        </button>
+        <!-- NOVO BOTÃO DE RESET -->
+        <button type="button" class="btn-secondary" (click)="resetFilter()" [disabled]="selectedFilter === 'all'">
+            Limpar Filtros
+        </button>
+    </form>
+
+    <div *ngIf="loading" class="loading-message">Carregando dados do relatório...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <div *ngIf="!loading && !error && summary" class="summary-cards">
+        <!-- Card Total -->
+        <div class="card total-card" [class.active]="selectedFilter === 'all'" (click)="applyFilter('all')">
+            <h3>Documentos Totais</h3>
+            <p class="metric">{{ summary.totalDocuments }}</p>
+        </div>
+        <!-- Card Assinados -->
+        <div class="card signed-card" [class.active]="selectedFilter === 'signed'" (click)="applyFilter('signed')">
+            <h3>Assinados</h3>
+            <p class="metric">{{ summary.signed }}</p>
+        </div>
+        <!-- Card Pendentes -->
+        <div class="card pending-card" [class.active]="selectedFilter === 'pending'" (click)="applyFilter('pending')">
+            <h3>Pendentes</h3>
+            <p class="metric">{{ summary.pending }}</p>
+        </div>
+        <!-- Card Falhados -->
+        <div class="card failed-card" [class.active]="selectedFilter === 'failed'" (click)="applyFilter('failed')">
+            <h3>Falhados/Recusados</h3>
+            <p class="metric">{{ summary.failed }}</p>
+        </div>
+        <!-- NOVO Card IA Concluída -->
+        <div class="card ai-completed-card" [class.active]="selectedFilter === 'aiCompleted'"
+            (click)="applyFilter('aiCompleted')">
+            <h3>Análise IA Concluída</h3>
+            <p class="metric">{{ summary.aiCompleted }}</p>
+        </div>
+        <!-- NOVO Card IA Pendente -->
+        <div class="card ai-pending-card" [class.active]="selectedFilter === 'aiPending'"
+            (click)="applyFilter('aiPending')">
+            <h3>Análise IA Pendente</h3>
+            <p class="metric">{{ summary.aiPending }}</p>
+        </div>
+    </div>
+
+    <div *ngIf="!loading && !error && documents.length > 0" class="document-table-section">
+        <h3>Documentos Filtrados ({{ documents.length }})</h3>
+        <p *ngIf="selectedFilter !== 'all'" class="filter-indicator">
+            Filtro Ativo: <strong>{{ selectedFilter }}</strong>.
+            <button (click)="resetFilter()" class="btn-reset-inline">Limpar</button>
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Status</th>
+                    <th>Análise IA</th>
+                    <th>Criado em</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let doc of documents">
+                    <td>{{ doc.id }}</td>
+                    <td>{{ doc.name }}</td>
+                    <td>{{ doc.status }}</td>
+                    <td>{{ doc.ai_analysis?.status || 'N/A' }}</td>
+                    <td>{{ doc.created_at | date:'short' }}</td>
+                    <td>
+                        <a [routerLink]="['/documents', doc.id]" class="btn-link">Ver Detalhes</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div *ngIf="!loading && !error && documents.length === 0" class="no-data-message">
+        Nenhum documento encontrado para o período selecionado e filtro ativo.
+    </div>
+</div>

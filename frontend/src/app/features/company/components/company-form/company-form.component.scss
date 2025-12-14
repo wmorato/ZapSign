@@ -1,0 +1,128 @@
+/* D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\company\components\company-form\company-form.component.scss */
+.company-form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 60px); // Ajuste para o header/footer se houver
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+
+    h2 {
+        color: #343a40;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    form {
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+
+            &:focus {
+                border-color: #007bff;
+                outline: none;
+                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            }
+
+            &.is-invalid {
+                border-color: #dc3545;
+            }
+        }
+
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+
+        .btn-primary,
+        .btn-secondary {
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+
+            &:hover:not(:disabled) {
+                background-color: #0056b3;
+                border-color: #0056b3;
+            }
+
+            &:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+            }
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: 1px solid #6c757d;
+
+            &:hover {
+                background-color: #5a6268;
+                border-color: #545b62;
+            }
+        }
+    }
+
+    .error-message,
+    .success-message {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 5px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .error-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .success-message {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+}

@@ -1,0 +1,39 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\dashboard\dashboard.component.html -->
+<div class="dashboard-container">
+    <div class="welcome-section">
+        <h2>Bem-vindo, {{ userName }}!</h2>
+        <p>Selecione uma opção para começar a gerenciar seus documentos.</p>
+    </div>
+
+    <div class="card-grid">
+        <a routerLink="/documents" class="card document-card">
+            <div class="icon">📄</div>
+            <h3>Documentos</h3>
+            <p>Crie, visualize e gerencie seus documentos e signatários.</p>
+        </a>
+
+        <a routerLink="/companies" class="card company-card">
+            <div class="icon">🏢</div>
+            <h3>Empresas</h3>
+            <p>Gerencie as informações da sua empresa e tokens de API.</p>
+        </a>
+
+        <a routerLink="/reports" class="card report-card">
+            <div class="icon">📊</div>
+            <h3>Relatórios</h3>
+            <p>Visualize o resumo e exporte dados de documentos por período.</p>
+        </a>
+
+        <!-- NOVO CARD DE FEEDBACK -->
+        <div class="card feedback-card" (click)="openFeedbackModal()">
+            <div class="icon">💬</div>
+            <h3>Feedback</h3>
+            <p>Envie elogios, críticas ou sugestões de melhoria para o time.</p>
+        </div>
+    </div>
+</div>
+
+<!-- NOVO MODAL DE FEEDBACK -->
+<app-feedback-modal *ngIf="showFeedbackModal" [userName]="userName" [userEmail]="userEmail"
+    (closeModal)="closeFeedbackModal()">
+</app-feedback-modal>

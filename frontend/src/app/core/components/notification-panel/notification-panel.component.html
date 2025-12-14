@@ -1,0 +1,40 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\core\components\notification-panel\notification-panel.component.html -->
+<div class="notification-panel">
+    <div class="panel-header">
+        <h3>Resumo de Risco</h3>
+        <button (click)="closePanel.emit()" class="btn-close">X</button>
+    </div>
+
+    <div *ngIf="loading" class="loading-message">Calculando risco...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <div *ngIf="!loading && summary.totalPending === 0" class="no-data-message">
+        🎉 Nenhum documento pendente de ação.
+    </div>
+
+    <div *ngIf="!loading && summary.totalPending > 0" class="risk-summary">
+        <div class="summary-item">
+            <span class="label">Total Pendente:</span>
+            <span class="value total-pending">{{ summary.totalPending }}</span>
+        </div>
+
+        <div class="summary-item">
+            <span class="label risk-low">Nível 1 (0-1 Dia):</span>
+            <span class="value {{ getRiskClass(1) }}">{{ summary.level1 }}</span>
+        </div>
+
+        <div class="summary-item">
+            <span class="label risk-medium">Nível 2 (2-5 Dias):</span>
+            <span class="value {{ getRiskClass(2) }}">{{ summary.level2 }}</span>
+        </div>
+
+        <div class="summary-item">
+            <span class="label risk-high">Nível 3 (+5 Dias):</span>
+            <span class="value {{ getRiskClass(3) }}">{{ summary.level3 }}</span>
+        </div>
+
+        <a routerLink="/documents/risk" (click)="closePanel.emit()" class="btn-action btn-primary">
+            Gerenciar Ações de Risco
+        </a>
+    </div>
+</div>

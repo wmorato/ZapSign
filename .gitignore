@@ -1,0 +1,54 @@
+# ===============================
+# GLOBAL
+# ===============================
+.env
+.env.*
+*.env
+*.log
+.DS_Store
+Thumbs.db
+
+# ===============================
+# BACKEND - Django / Java
+# ===============================
+backend/venv/
+backend/__pycache__/
+backend/**/*.pyc
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/.idea/
+backend/.vscode/
+
+# Secrets locais
+backend/**/settings_local.py
+backend/**/local_settings.py
+
+# ===============================
+# FRONTEND - Angular
+# ===============================
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.cache/
+frontend/.idea/
+frontend/.vscode/
+
+# ===============================
+# BUILD / CACHE
+# ===============================
+*.class
+target/
+out/
+
+# ===============================
+# DOCKER
+# ===============================
+*.env.docker
+docker-compose.override.yml
+
+# ===============================
+# IDEs
+# ===============================
+.idea/
+.vscode/

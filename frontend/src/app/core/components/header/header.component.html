@@ -1,0 +1,36 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\core\components\header\header.component.html -->
+<nav *ngIf="isAuthenticated$ | async" class="navbar">
+    <div class="navbar-left">
+        <div class="navbar-brand">ZapSign App</div>
+        <div class="navbar-info">
+            <span class="info-item">{{ currentDateTime | date:'short' }}</span>
+            <span class="info-item user-name">Bem-vindo, {{ userName }}</span>
+        </div>
+    </div>
+    <div class="navbar-links">
+        <!-- Ícone de Notificação de Documentos Pendentes -->
+        <div class="notification-wrapper">
+            <button (click)="toggleNotificationPanel()" class="notification-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <ng-container *ngIf="pendingDocumentsCount$ | async as count">
+                    <span class="badge" *ngIf="count > 0">{{ count }}</span>
+                </ng-container>
+            </button>
+
+            <!-- Painel de Notificação (Pop-up) -->
+            <div class="notification-dropdown" *ngIf="showNotificationPanel">
+                <app-notification-panel (closePanel)="toggleNotificationPanel()"></app-notification-panel>
+            </div>
+        </div>
+
+        <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a routerLink="/companies" routerLinkActive="active">Empresas</a>
+        <a routerLink="/documents" routerLinkActive="active">Documentos</a>
+        <a routerLink="/reports" routerLinkActive="active">Relatórios</a>
+        <button (click)="logout()" class="btn-logout">Sair</button>
+    </div>
+</nav>

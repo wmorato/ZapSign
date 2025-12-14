@@ -1,0 +1,126 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\document\components\document-form\document-form.component.html -->
+<div class="document-form-container">
+    <h2>{{ isEditMode ? 'Editar Documento' : 'Novo Documento' }}</h2>
+
+    <form [formGroup]="documentForm" (ngSubmit)="onSubmit()">
+        <div class="form-section">
+            <h3>Informações do Documento</h3>
+
+            <div class="form-group">
+                <label for="name">Nome do Documento:</label>
+                <input id="name" type="text" formControlName="name" placeholder="Nome do Documento"
+                    [class.is-invalid]="documentForm.get('name')?.invalid && documentForm.get('name')?.touched" />
+                <div *ngIf="documentForm.get('name')?.invalid && documentForm.get('name')?.touched"
+                    class="invalid-feedback">
+                    Nome é obrigatório.
+                </div>
+            </div>
+
+            <!-- CAMPO DE EMPRESA REMOVIDO: O sistema infere automaticamente -->
+
+            <div class="form-group">
+                <label for="url_pdf">URL do PDF:</label>
+                <!-- ADICIONADO: (input)="onUrlInput($event)" e [disabled] -->
+                <input id="url_pdf" type="url" formControlName="url_pdf" (input)="onUrlInput($event)"
+                    [disabled]="documentForm.get('local_pdf_file')?.value && documentForm.get('local_pdf_file')?.enabled"
+                    placeholder="Ex: https://example.com/documento.pdf"
+                    [class.is-invalid]="(documentForm.get('url_pdf')?.invalid && documentForm.get('url_pdf')?.touched) || (documentForm.errors?.['urlOrFileRequired'] && documentForm.get('url_pdf')?.touched && !documentForm.get('base64_pdf')?.value)" />
+                <div *ngIf="documentForm.get('url_pdf')?.errors?.['pattern'] && documentForm.get('url_pdf')?.touched"
+                    class="invalid-feedback">
+                    A URL do PDF deve ser um formato válido (iniciando com http/https).
+                </div>
+                <!-- Mensagem de erro mútua (só aparece se o campo de arquivo local também estiver vazio) -->
+                <div *ngIf="documentForm.errors?.['urlOrFileRequired'] && documentForm.get('url_pdf')?.touched && !documentForm.get('base64_pdf')?.value"
+                    class="invalid-feedback">
+                    É obrigatório fornecer a URL do PDF OU um arquivo local.
+                </div>
+            </div>
+
+            <!-- NOVO: Campo de Upload de Arquivo Local -->
+            <!-- O campo de arquivo é desabilitado no modo de edição (só permite URL) -->
+            <div class="form-group" [class.disabled-group]="isEditMode">
+                <label for="local_pdf_file">Upload de PDF Local (Máx. {{ maxFileSizeMB }}MB):</label>
+                <!-- ADICIONADO: formControlName="local_pdf_file" e [disabled] -->
+                <input id="local_pdf_file" type="file" formControlName="local_pdf_file" (change)="onFileSelected($event)" accept="application/pdf"
+                    [disabled]="isEditMode || documentForm.get('url_pdf')?.value"
+                    [class.is-invalid]="(documentForm.get('base64_pdf')?.errors?.['maxSize'] || documentForm.get('base64_pdf')?.errors?.['invalidType']) && documentForm.get('base64_pdf')?.touched" />
+                
+                <div *ngIf="isEditMode" class="invalid-feedback">
+                    O arquivo só pode ser adicionado criando um novo documento.
+                </div>
+                <div *ngIf="documentForm.get('base64_pdf')?.errors?.['maxSize']" class="invalid-feedback">
+                    O arquivo excede o limite de {{ maxFileSizeMB }}MB.
+                </div>
+                <div *ngIf="documentForm.get('base64_pdf')?.errors?.['invalidType']" class="invalid-feedback">
+                    Apenas arquivos PDF são suportados.
+                </div>
+            </div>
+            <!-- FIM NOVO -->
+
+            <div class="form-group">
+                <label for="externalID">ID Externo (Opcional):</label>
+                <input id="externalID" type="text" formControlName="externalID" placeholder="ID Externo do Documento" />
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Signatários</h3>
+            <div formArrayName="signers">
+                <div *ngFor="let signerGroup of signers.controls; let i = index" [formGroupName]="i"
+                    class="signer-group">
+                    <h4>Signatário {{ i + 1 }}</h4>
+                    <div class="form-group">
+                        <label [for]="'signerName' + i">Nome do Signatário:</label>
+                        <input [id]="'signerName' + i" type="text" formControlName="name" placeholder="Nome Completo"
+                            [class.is-invalid]="signerGroup.get('name')?.invalid && signerGroup.get('name')?.touched" />
+                        <div *ngIf="signerGroup.get('name')?.invalid && signerGroup.get('name')?.touched"
+                            class="invalid-feedback">
+                            Nome do signatário é obrigatório.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label [for]="'signerEmail' + i">Email do Signatário:</label>
+                        <input [id]="'signerEmail' + i" type="email" formControlName="email"
+                            placeholder="email@example.com"
+                            [class.is-invalid]="signerGroup.get('email')?.invalid && signerGroup.get('email')?.touched" />
+                        <div *ngIf="signerGroup.get('email')?.invalid && signerGroup.get('email')?.touched"
+                            class="invalid-feedback">
+                            Email do signatário é obrigatório e deve ser válido.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label [for]="'signerExternalId' + i">ID Externo do Signatário (Opcional):</label>
+                        <input [id]="'signerExternalId' + i" type="text" formControlName="externalID"
+                            placeholder="ID Externo" />
+                    </div>
+
+                    <!-- Campos Ocultos -->
+                    <input type="hidden" formControlName="id" />
+                    <input type="hidden" formControlName="token" />
+                    <input type="hidden" formControlName="status" />
+
+                    <button type="button" (click)="removeSigner(i)" class="btn-danger remove-signer-btn">Remover
+                        Signatário</button>
+                </div>
+            </div>
+            <button type="button" (click)="addSigner()" class="btn-secondary add-signer-btn">Adicionar
+                Signatário</button>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="documentForm.invalid">
+                {{ isEditMode ? 'Salvar Alterações' : 'Criar Documento' }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="onCancel()">Cancelar</button>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+            {{ errorMessage }}
+        </div>
+        <div *ngIf="successMessage" class="success-message">
+            {{ successMessage }}
+        </div>
+    </form>
+</div>

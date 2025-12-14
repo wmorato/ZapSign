@@ -1,0 +1,184 @@
+/* D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\document\components\document-risk-management\document-risk-management.component.scss */
+.risk-management-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 60px);
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+
+        h2 {
+            color: #343a40;
+            margin: 0;
+        }
+
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                background-color: #5a6268;
+            }
+        }
+    }
+
+    .controls-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fff;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            label {
+                font-weight: bold;
+                color: #495057;
+            }
+
+            select {
+                padding: 8px;
+                border-radius: 4px;
+                border: 1px solid #ccc;
+            }
+        }
+
+        .mass-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            .selected-count {
+                font-weight: bold;
+                color: #007bff;
+            }
+        }
+    }
+
+    .risk-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+
+        th,
+        td {
+            border: 1px solid #dee2e6;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #e2f0ff;
+        }
+
+        .risk-low {
+            background-color: #d4edda;
+            /* Verde claro */
+        }
+
+        .risk-medium {
+            background-color: #fff3cd;
+            /* Amarelo claro */
+        }
+
+        .risk-high {
+            background-color: #f8d7da;
+            /* Vermelho claro */
+        }
+
+        .risk-label {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .risk-low {
+            color: #155724;
+            background-color: #c3e6cb;
+        }
+
+        .risk-medium {
+            color: #856404;
+            background-color: #ffeeba;
+        }
+
+        .risk-high {
+            color: #721c24;
+            background-color: #f5c6cb;
+        }
+
+        .action-buttons {
+            white-space: nowrap;
+        }
+    }
+
+    .btn-action {
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        border: 1px solid;
+        transition: background-color 0.3s ease;
+
+        &.btn-medium {
+            background-color: #17a2b8;
+            color: white;
+            border-color: #17a2b8;
+
+            &:hover:not(:disabled) {
+                background-color: #138496;
+            }
+        }
+
+        &.btn-high {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+
+            &:hover:not(:disabled) {
+                background-color: #c82333;
+            }
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+
+    .loading-message,
+    .error-message,
+    .no-data-message {
+        text-align: center;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+}

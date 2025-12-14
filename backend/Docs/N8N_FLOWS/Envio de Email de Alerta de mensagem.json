@@ -1,0 +1,163 @@
+{
+  "name": "Envio de Email de Alerta de mensagem",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Segurança absoluta do input\nconst summary = items[0]?.json ?? {};\n\nconst highRiskCount = Number(summary.highRiskCount ?? 0);\nconst highRiskDocuments = Array.isArray(summary.highRiskDocuments)\n    ? summary.highRiskDocuments\n    : [];\n\nlet tableHtml = '';\n\nif (highRiskCount === 0) {\n    tableHtml =\n        '<p style=\"color:#28a745;font-weight:bold;\">🎉 Nenhum documento em Alto Risco. Tudo certo!</p>';\n} else {\n    tableHtml += '<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\" style=\"border-collapse:collapse;\">';\n    tableHtml += '<thead>';\n    tableHtml += '<tr>';\n    tableHtml += '<th>ID</th>';\n    tableHtml += '<th>Nome do Documento</th>';\n    tableHtml += '<th>Dias Pendentes</th>';\n    tableHtml += '<th>Token (Início)</th>';\n    tableHtml += '</tr>';\n    tableHtml += '</thead>';\n    tableHtml += '<tbody>';\n\n    for (const doc of highRiskDocuments) {\n        const id = doc.id ?? '-';\n        const name = doc.name ?? 'Sem nome';\n        const daysPending = doc.daysPending ?? 0;\n\n        const token =\n            typeof doc.token === 'string' && doc.token.length > 8\n                ? doc.token.substring(0, 8) + '...'\n                : 'N/A';\n\n        tableHtml += '<tr>';\n        tableHtml += `<td>${id}</td>`;\n        tableHtml += `<td>${name}</td>`;\n        tableHtml += `<td style=\"color:#dc3545;font-weight:bold;\">${daysPending} dias</td>`;\n        tableHtml += `<td>${token}</td>`;\n        tableHtml += '</tr>';\n    }\n\n    tableHtml += '</tbody></table>';\n}\n\n// Garante retorno consistente\nreturn [\n    {\n        json: {\n            ...summary,\n            tableHtml\n        }\n    }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        272
+      ],
+      "id": "6697f5da-6d8a-42b7-8cb9-70c9a823140e",
+      "name": "Filter High Risk"
+    },
+    {
+      "parameters": {
+        "fromEmail": "Wilson Morato",
+        "toEmail": "wil_mor_s@hotmail.com",
+        "subject": "=RELATÓRIO DIÁRIO: {{ $json.highRiskCount }} Alerta(s) de Risco - Total Pendente: {{ $json.pending }}",
+        "html": "={{ `\n<div style=\"font-family:Arial,sans-serif;background:#f4f4f4;padding:20px;\">\n  <div style=\"background:#fff;padding:20px;border-radius:8px;\">\n    <h2>Relatório Diário de Status de Documentos</h2>\n\n    <p>Prezado(a) Gestor(a),</p>\n    <p>Segue o resumo do status dos documentos da empresa:</p>\n\n    <div style=\"display:flex;gap:10px;margin-bottom:20px;\">\n      <div style=\"flex:1;padding:10px;background:#e9ecef;text-align:center;\">\n        Total: <strong>${$json.totalDocuments}</strong>\n      </div>\n      <div style=\"flex:1;padding:10px;background:#d4edda;text-align:center;\">\n        Assinados: <strong>${$json.signed}</strong>\n      </div>\n      <div style=\"flex:1;padding:10px;background:#fff3cd;text-align:center;\">\n        Pendentes: <strong>${$json.pending}</strong>\n      </div>\n      <div style=\"flex:1;padding:10px;background:#f8d7da;text-align:center;\">\n        Alto Risco: <strong>${$json.highRiskCount}</strong>\n      </div>\n    </div>\n\n    <h3>Documentos de Alto Risco (Pendentes > 1 dia)</h3>\n\n    ${$json.tableHtml}\n\n    <p style=\"margin-top:20px;\">\n      Atenciosamente<br>\n      Sistema de Automação ZapSign\n    </p>\n  </div>\n</div>\n` }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        272
+      ],
+      "id": "1e05ef70-2d78-495d-88ad-c7677736d2b7",
+      "name": "Send email1",
+      "webhookId": "40f68356-4d7f-4d3f-8cb9-95f492a18c98",
+      "credentials": {
+        "smtp": {
+          "id": "9OyAfXpMLgJ77i1t",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8000/api/automations/reports/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "{{ $env.N8N_API_KEY_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"report_type\": \"monthly_summary\",\n    \"start_date\": \"2025-12-13\",\n    \"end_date\": \"2025-12-13\",\n    \"company_id\": 7\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        336,
+        272
+      ],
+      "id": "c656f663-1409-4475-adfa-db9b1f06817f",
+      "name": "Gerar Relatorio"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        272
+      ],
+      "id": "9d5a7891-f0a1-4b39-9d9a-32ce40e11885",
+      "name": "Frequencia de Execução Diaria"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = items[0].json;\nconst documents = payload.data?.documents ?? [];\n\nlet signed = 0;\nlet pending = 0;\nlet failed = 0;\nlet highRiskCount = 0;\n\nconst now = Date.now();\nconst oneDayMs = 24 * 60 * 60 * 1000;\n\nfor (const doc of documents) {\n    if (doc.status === 'signed') {\n        signed++;\n    } else if (doc.status === 'pending' || doc.status === 'new') {\n        pending++;\n\n        const createdAt = new Date(doc.created_at).getTime();\n        const daysPending = Math.floor((now - createdAt) / oneDayMs);\n\n        if (daysPending > 1) {\n            highRiskCount++;\n        }\n    } else {\n        failed++;\n    }\n}\n\nreturn [\n  {\n    json: {\n      totalDocuments: documents.length,\n      signed,\n      pending,\n      failed,\n      highRiskCount,\n      tableHtml: payload.tableHtml\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        272
+      ],
+      "id": "53d07fdb-1c4b-4586-9592-c5d4e3165f66",
+      "name": "Refinamento"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Filter High Risk": {
+      "main": [
+        [
+          {
+            "node": "Refinamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Relatorio": {
+      "main": [
+        [
+          {
+            "node": "Filter High Risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Frequencia de Execução Diaria": {
+      "main": [
+        [
+          {
+            "node": "Gerar Relatorio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refinamento": {
+      "main": [
+        [
+          {
+            "node": "Send email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a2fecd6e-3e90-436c-b075-c19f40628c75",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "31735903fb988b1419f24d902289111d6df2ae5d53d29428a6fa6b18dbcf3e9b"
+  },
+  "id": "h3YciVrt5pOaZv0m",
+  "tags": []
+}

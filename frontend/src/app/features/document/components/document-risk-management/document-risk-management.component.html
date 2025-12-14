@@ -1,0 +1,83 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\document\components\document-risk-management\document-risk-management.component.html -->
+<div class="risk-management-container">
+    <div class="header">
+        <h2>Gestão de Risco de Assinatura</h2>
+        <a routerLink="/documents" class="btn-back">Voltar para Documentos</a>
+    </div>
+
+    <div *ngIf="loading" class="loading-message">Carregando documentos pendentes...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <div *ngIf="!loading && allPendingDocuments.length === 0" class="no-data-message">
+        🎉 Nenhum documento pendente de ação.
+    </div>
+
+    <div *ngIf="!loading && allPendingDocuments.length > 0">
+        <div class="controls-section">
+            <div class="filter-group">
+                <label for="riskFilter">Filtrar por Nível de Risco:</label>
+                <select id="riskFilter" [(ngModel)]="selectedRiskLevel" (change)="filterDocuments()">
+                    <option value="all">Todos ({{ allPendingDocuments.length }})</option>
+                    <!-- CORREÇÃO: Usando o novo método getRiskCount() -->
+                    <option [ngValue]="1">Nível 1 ({{ getRiskCount(1) }})</option>
+                    <option [ngValue]="2">Nível 2 ({{ getRiskCount(2) }})</option>
+                    <option [ngValue]="3">Nível 3 ({{ getRiskCount(3) }})</option>
+                </select>
+            </div>
+
+            <div class="mass-actions">
+                <span class="selected-count">{{ selectedCount }} documento(s) selecionado(s)</span>
+                <button (click)="performMassAction('email')" class="btn-action btn-medium"
+                    [disabled]="selectedCount === 0">
+                    Enviar Lembrete (Massa)
+                </button>
+                <button (click)="performMassAction('meeting')" class="btn-action btn-high"
+                    [disabled]="selectedCount === 0">
+                    Solicitar Reunião (Massa)
+                </button>
+            </div>
+        </div>
+
+        <table class="risk-table">
+            <thead>
+                <tr>
+                    <th>
+                        <input type="checkbox" (change)="toggleSelectAll($event)"
+                            [checked]="selectedCount === filteredDocuments.length && filteredDocuments.length > 0"
+                            [indeterminate]="selectedCount > 0 && selectedCount < filteredDocuments.length">
+                    </th>
+                    <th>ID</th>
+                    <th>Nome do Documento</th>
+                    <th>Dias Pendentes</th>
+                    <th>Nível de Risco</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let doc of filteredDocuments" [class]="getRiskClass(doc.riskLevel)">
+                    <td>
+                        <input type="checkbox" [(ngModel)]="doc.isSelected">
+                    </td>
+                    <td>{{ doc.id }}</td>
+                    <td><a [routerLink]="['/documents', doc.id]">{{ doc.name }}</a></td>
+                    <td>{{ doc.daysPending }} dias</td>
+                    <td>
+                        <span class="risk-label" [class]="getRiskClass(doc.riskLevel)">
+                            {{ getRiskLabel(doc.riskLevel) }}
+                        </span>
+                    </td>
+                    <td class="action-buttons">
+                        <button *ngIf="doc.riskLevel < 3" (click)="simulateEmailNotification(doc)"
+                            class="btn-action btn-medium">
+                            Enviar Lembrete
+                        </button>
+                        <button *ngIf="doc.riskLevel === 3" (click)="simulateMeetingRequest(doc)"
+                            class="btn-action btn-high">
+                            Agendar Reunião
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,132 @@
+/* D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\company\components\company-list\company-list.component.scss */
+.company-list-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 60px); // Ajuste para o header/footer se houver
+
+    h2 {
+        color: #343a40;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .actions {
+        margin-bottom: 20px;
+        text-align: right;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+        margin-left: 10px;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        border: 1px solid #007bff;
+
+        &:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: 1px solid #6c757d;
+
+        &:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        border: 1px solid #dc3545;
+
+        &:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+    }
+
+    .loading-message,
+    .error-message,
+    .no-data-message {
+        text-align: center;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+
+    .loading-message {
+        background-color: #e2e6ea;
+        color: #343a40;
+    }
+
+    .error-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .no-data-message {
+        background-color: #e9ecef;
+        color: #6c757d;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+
+        th,
+        td {
+            border: 1px solid #dee2e6;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #e2f0ff;
+        }
+
+        .action-buttons {
+            white-space: nowrap;
+
+            /* Evita que os botões quebrem linha */
+            a,
+            button {
+                margin-right: 5px;
+
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+}

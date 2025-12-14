@@ -1,0 +1,85 @@
+/* D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\dashboard\dashboard.component.scss */
+.dashboard-container {
+    padding: 40px 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    min-height: calc(100vh - 60px);
+    text-align: center;
+
+    .welcome-section {
+        margin-bottom: 40px;
+
+        h2 {
+            color: #343a40;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        max-width: 1000px;
+        margin: 0 auto;
+
+        .card {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            color: #343a40;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            /* NOVO: Indica que o card é clicável */
+
+            &:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            }
+
+            .icon {
+                font-size: 3em;
+                margin-bottom: 15px;
+            }
+
+            h3 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+                color: #007bff;
+            }
+
+            p {
+                color: #6c757d;
+            }
+        }
+
+        .document-card h3 {
+            color: #28a745;
+        }
+
+        .company-card h3 {
+            color: #ffc107;
+        }
+
+        .report-card h3 {
+            color: #17a2b8;
+        }
+
+        .feedback-card h3 {
+            /* NOVO ESTILO */
+            color: #6f42c1;
+            /* Roxo */
+        }
+    }
+}

@@ -1,0 +1,125 @@
+/* D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\core\components\header\header.component.scss */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #343a40;
+    padding: 10px 20px;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    .navbar-left {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .navbar-brand {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #007bff;
+        /* Destaque para o nome da aplicação */
+    }
+
+    .navbar-info {
+        display: flex;
+        gap: 15px;
+        font-size: 0.9em;
+        color: #ccc;
+
+        .user-name {
+            font-weight: bold;
+            color: #fff;
+        }
+    }
+
+    .navbar-links {
+        display: flex;
+        align-items: center;
+
+        a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            margin-left: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+
+            &:hover,
+            &.active {
+                background-color: #495057;
+            }
+        }
+
+        .notification-wrapper {
+            /* NOVO: Wrapper para o dropdown */
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .notification-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+            border-radius: 5px;
+
+            &:hover {
+                background-color: #495057;
+            }
+
+            svg {
+                width: 24px;
+                height: 24px;
+                color: white;
+            }
+
+            .badge {
+                position: absolute;
+                top: 0px;
+                right: 0px;
+                background-color: #dc3545;
+                color: white;
+                border-radius: 50%;
+                padding: 2px 6px;
+                font-size: 10px;
+                font-weight: bold;
+                line-height: 1;
+            }
+        }
+
+        .notification-dropdown {
+            /* NOVO: Estilo do dropdown */
+            position: absolute;
+            top: 100%;
+            /* Abaixo do botão */
+            right: 0;
+            z-index: 1001;
+            margin-top: 10px;
+            /* Espaçamento */
+        }
+
+        .btn-logout {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin-left: 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                background-color: #c82333;
+            }
+        }
+    }
+}

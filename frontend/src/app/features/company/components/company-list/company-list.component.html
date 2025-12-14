@@ -1,0 +1,41 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\company\components\company-list\company-list.component.html -->
+<div class="company-list-container">
+    <h2>Gestão de Empresas</h2>
+
+    <div class="actions">
+        <a routerLink="/companies/new" class="btn-primary">Nova Empresa</a>
+    </div>
+
+    <div *ngIf="loading" class="loading-message">Carregando empresas...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <div *ngIf="!loading && !error && companies.length === 0" class="no-data-message">
+        Nenhuma empresa cadastrada.
+    </div>
+
+    <table *ngIf="!loading && !error && companies.length > 0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Token API</th>
+                <th>Criado em</th>
+                <th>Última Atualização</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let company of companies">
+                <td>{{ company.id }}</td>
+                <td>{{ company.name }}</td>
+                <td>{{ company.apiToken ? '********' : 'N/A' }}</td>
+                <td>{{ company.created_at | date:'short' }}</td>
+                <td>{{ company.last_updated_at | date:'short' }}</td>
+                <td class="action-buttons">
+                    <a [routerLink]="['/companies', company.id, 'edit']" class="btn-secondary">Editar</a>
+                    <button (click)="deleteCompany(company.id)" class="btn-danger">Excluir</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

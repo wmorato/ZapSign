@@ -1,0 +1,116 @@
+<!-- D:\Projetos\DesafioTecnico\ZapSign\frontend\src\app\features\document\components\document-detail\document-detail.component.html -->
+<div class="document-detail-container">
+    <div class="header">
+        <h2>Detalhes do Documento</h2>
+        <a routerLink="/documents" class="btn-back">Voltar para Documentos</a>
+    </div>
+
+    <div *ngIf="loading" class="loading-message">Carregando detalhes do documento...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <div *ngIf="!loading && !error && document">
+        <div class="document-info-card">
+            <h3>Informações Gerais</h3>
+            <p><strong>ID:</strong> {{ document.id }}</p>
+            <p><strong>Nome:</strong> {{ document.name }}</p>
+            <p><strong>Empresa:</strong> {{ companyName }}</p>
+            <p><strong>Status:</strong> {{ document.status }}</p>
+            <p><strong>Token ZapSign:</strong> {{ document.token ? '********' : 'N/A' }}</p>
+            <p><strong>OpenID:</strong> {{ document.openID || 'N/A' }}</p>
+            <p><strong>ID Externo:</strong> {{ document.externalID || 'N/A' }}</p>
+            <p><strong>URL PDF Assinado:</strong> {{ document.signed_file_url ? 'Disponível' : 'N/A' }}</p> <!-- ADICIONADO -->
+            <p><strong>Criado em:</strong> {{ document.created_at | date:'short' }}</p>
+            <p><strong>Última Atualização:</strong> {{ document.last_updated_at | date:'short' }}</p>
+            <p><strong>Criado por:</strong> {{ document.created_by || 'N/A' }}</p>
+
+            <div class="document-actions">
+                <a [routerLink]="['/documents', document.id, 'edit']" class="btn-secondary">Editar Documento</a>
+                <!-- MODIFICADO: Desabilita se não tiver token OU se o status não for 'signed' (opcional, mas mais seguro) -->
+                <button (click)="downloadPdf()" class="btn-primary" [disabled]="!document.token || document.status !== 'signed'">Baixar PDF
+                    Assinado</button>
+            </div>
+        </div>
+
+        <div class="signers-card">
+            <h3>Signatários</h3>
+            <div *ngIf="document.signers_db && document.signers_db.length > 0">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Token</th>
+                            <th>ID Externo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let signer of document.signers_db">
+                            <td>{{ signer.id }}</td>
+                            <td>{{ signer.name }}</td>
+                            <td>{{ signer.email }}</td>
+                            <td>{{ signer.status }}</td>
+                            <td>{{ signer.token ? '********' : 'N/A' }}</td>
+                            <td>{{ signer.externalID || 'N/A' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div *ngIf="!document.signers_db || document.signers_db.length === 0" class="no-data-message">
+                Nenhum signatário associado a este documento.
+            </div>
+        </div>
+
+        <div class="ai-analysis-card">
+            <h3>Análise de IA</h3>
+            <div *ngIf="document.ai_analysis">
+                <p><strong>Status da Análise:</strong> {{ getAiAnalysisStatus(document.ai_analysis) }}</p>
+
+                <!-- NOVO: Botão de Reanálise -->
+                <div class="document-actions" style="margin-top: 10px; justify-content: flex-start;">
+                    <button (click)="reanalyzeDocument()" class="btn-warning"
+                            [disabled]="!document.url_pdf || isReanalyzeProcessing">
+                        {{ isReanalyzeProcessing ? 'Processando...' : 'Reanalisar Documento (IA)' }}
+                    </button>
+                </div>
+                <!-- FIM NOVO -->
+
+                <div *ngIf="document.ai_analysis.status === 'completed'">
+                    <p><strong>Resumo:</strong> {{ document.ai_analysis.summary || 'N/A' }}</p>
+                    <p><strong>Tópicos Faltantes:</strong>
+                        <span
+                            *ngIf="document.ai_analysis.missing_topics && document.ai_analysis.missing_topics.length > 0">
+                            {{ document.ai_analysis.missing_topics.join(', ') }}
+                        </span>
+                        <span
+                            *ngIf="!document.ai_analysis.missing_topics || document.ai_analysis.missing_topics.length === 0">
+                            Nenhum tópico faltando identificado.
+                        </span>
+                    </p>
+                    <p><strong>Insights:</strong>
+                        <span *ngIf="document.ai_analysis.insights && document.ai_analysis.insights.length > 0">
+                            {{ document.ai_analysis.insights.join('; ') }}
+                        </span>
+                        <span *ngIf="!document.ai_analysis.insights || document.ai_analysis.insights.length === 0">
+                            Nenhum insight gerado.
+                        </span>
+                    </p>
+                    <p><strong>Modelo de IA Utilizado:</strong> {{ document.ai_analysis.model_used || 'N/A' }}</p>
+                    <p><strong>Análise Criada em:</strong> {{ document.ai_analysis.created_at | date:'short' }}</p>
+                </div>
+                <div *ngIf="document.ai_analysis.status === 'pending' || document.ai_analysis.status === 'processing'">
+                    <p>A análise de IA está {{ getAiAnalysisStatus(document.ai_analysis) }}. Por favor, aguarde ou
+                        atualize a página.</p>
+                </div>
+                <div *ngIf="document.ai_analysis.status === 'failed'">
+                    <p>A análise de IA falhou. Detalhes: {{ document.ai_analysis.summary || 'Verifique os logs do
+                        backend.' }}</p>
+                </div>
+            </div>
+            <div *ngIf="!document.ai_analysis" class="no-data-message">
+                Nenhuma análise de IA disponível para este documento.
+            </div>
+        </div>
+    </div>
+</div>
