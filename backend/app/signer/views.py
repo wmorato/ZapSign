@@ -6,9 +6,33 @@ from app.signer.models import Signer
 from app.signer.serializers import SignerSerializer
 
 from app.services.zapsign_service import ZapSignService
-from django.conf import settings # Importar settings para acessar ZAPSIGN_API_TOKEN
+from django.conf import settings  # Importar settings para acessar ZAPSIGN_API_TOKEN
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiResponse,
+)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        summary="Listar signatários",
+        description="Lista os signatários vinculados aos documentos da empresa do usuário.",
+        responses={200: SignerSerializer(many=True)},
+    ),
+    post=extend_schema(
+        summary="Criar signatário",
+        description="Cria um signatário localmente e adiciona o signatário na ZapSign.",
+        request=SignerSerializer,
+        responses={
+            201: SignerSerializer,
+            400: OpenApiResponse(
+                description="Erro de validação ou token ZapSign ausente."
+            ),
+            500: OpenApiResponse(description="Erro ao criar signatário na ZapSign."),
+        },
+    ),
+)
 class SignerListCreateView(generics.ListCreateAPIView):
     queryset = Signer.objects.all()
     serializer_class = SignerSerializer
@@ -31,7 +55,9 @@ class SignerListCreateView(generics.ListCreateAPIView):
             zapsign_api_token_to_use = getattr(settings, "ZAPSIGN_API_TOKEN", None)
             if not zapsign_api_token_to_use:
                 return Response(
-                    {"error": "API Token da ZapSign não configurado para a empresa ou globalmente."},
+                    {
+                        "error": "API Token da ZapSign não configurado para a empresa ou globalmente."
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         # --- Fim da Lógica para obter o API Token da ZapSign ---
@@ -43,7 +69,7 @@ class SignerListCreateView(generics.ListCreateAPIView):
                 document_token=document.token,
                 name=signer.name,
                 email=signer.email,
-                external_id=signer.externalID
+                external_id=signer.externalID,
             )
 
             signer.token = result.get("token")
@@ -58,9 +84,42 @@ class SignerListCreateView(generics.ListCreateAPIView):
             )
 
         headers = self.get_success_headers(serializer.data)
-        return Response(SignerSerializer(signer).data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            SignerSerializer(signer).data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
 
 
+@extend_schema_view(
+    get=extend_schema(
+        summary="Obter signatário",
+        responses={200: SignerSerializer},
+    ),
+    put=extend_schema(
+        summary="Atualizar signatário",
+        description="Atualiza o signatário localmente e na ZapSign.",
+        request=SignerSerializer,
+        responses={
+            200: SignerSerializer,
+            400: OpenApiResponse(description="Token ZapSign ausente."),
+            500: OpenApiResponse(description="Erro ao atualizar na ZapSign."),
+        },
+    ),
+    patch=extend_schema(
+        summary="Atualizar parcialmente signatário",
+        request=SignerSerializer,
+        responses={200: SignerSerializer},
+    ),
+    delete=extend_schema(
+        summary="Excluir signatário",
+        description="Remove o signatário localmente e da ZapSign.",
+        responses={
+            204: OpenApiResponse(description="Signatário removido com sucesso."),
+            500: OpenApiResponse(description="Erro ao remover signatário da ZapSign."),
+        },
+    ),
+)
 class SignerDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Signer.objects.all()
     serializer_class = SignerSerializer
@@ -69,7 +128,7 @@ class SignerDetailView(generics.RetrieveUpdateDestroyAPIView):
         """
         Atualiza signatário local + atualiza signatário na ZapSign.
         """
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         signer = self.get_object()
         serializer = self.get_serializer(signer, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
@@ -80,7 +139,9 @@ class SignerDetailView(generics.RetrieveUpdateDestroyAPIView):
             zapsign_api_token_to_use = getattr(settings, "ZAPSIGN_API_TOKEN", None)
             if not zapsign_api_token_to_use:
                 return Response(
-                    {"error": "API Token da ZapSign não configurado para a empresa ou globalmente."},
+                    {
+                        "error": "API Token da ZapSign não configurado para a empresa ou globalmente."
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         # --- Fim da Lógica para obter o API Token da ZapSign ---
@@ -102,7 +163,9 @@ class SignerDetailView(generics.RetrieveUpdateDestroyAPIView):
             except Exception as e:
                 print(f"Erro ao atualizar signatário {signer.id} na ZapSign: {e}")
                 return Response(
-                    {"error": f"Falha ao atualizar signatário na ZapSign: {str(e)}. Alterações não foram salvas localmente."},
+                    {
+                        "error": f"Falha ao atualizar signatário na ZapSign: {str(e)}. Alterações não foram salvas localmente."
+                    },
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
@@ -122,7 +185,9 @@ class SignerDetailView(generics.RetrieveUpdateDestroyAPIView):
             zapsign_api_token_to_use = getattr(settings, "ZAPSIGN_API_TOKEN", None)
             if not zapsign_api_token_to_use:
                 return Response(
-                    {"error": "API Token da ZapSign não configurado para a empresa ou globalmente. Signatário será excluído apenas localmente."},
+                    {
+                        "error": "API Token da ZapSign não configurado para a empresa ou globalmente. Signatário será excluído apenas localmente."
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         # --- Fim da Lógica para obter o API Token da ZapSign ---
@@ -135,7 +200,9 @@ class SignerDetailView(generics.RetrieveUpdateDestroyAPIView):
             except Exception as e:
                 print(f"Erro ao remover signatário {signer.id} da ZapSign: {e}")
                 return Response(
-                    {"error": f"Falha ao remover signatário da ZapSign: {str(e)}. Signatário não foi excluído localmente."},
+                    {
+                        "error": f"Falha ao remover signatário da ZapSign: {str(e)}. Signatário não foi excluído localmente."
+                    },
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 

@@ -9,6 +9,21 @@ from .serializers import RegisterSerializer
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
 
+@extend_schema(
+    summary="Registrar novo usuário",
+    description="Cria um novo usuário e uma nova empresa automaticamente.",
+    request=RegisterSerializer,
+    responses={
+        201: {
+            "description": "Usuário e empresa criados com sucesso.",
+            "content": {"application/json": {"example": {"email": "user@email.com"}}},
+        },
+        400: {
+            "description": "Erro de validação.",
+        },
+    },
+    auth=[],
+)
 class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer

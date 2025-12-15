@@ -22,6 +22,7 @@ from drf_spectacular.utils import (
     extend_schema,
     inline_serializer,
     OpenApiResponse,
+    extend_schema_view,
 )
 
 from rest_framework import serializers
@@ -30,6 +31,43 @@ from rest_framework import serializers
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        summary="Listar documentos",
+        description="Retorna os documentos da empresa do usuário autenticado.",
+        responses=DocumentSerializer(many=True),
+    ),
+    post=extend_schema(
+        summary="Criar documento",
+        description=(
+            "Cria um documento na ZapSign. É obrigatório enviar url_pdf ou base64_pdf."
+        ),
+        request=inline_serializer(
+            name="DocumentCreateRequest",
+            fields={
+                "name": serializers.CharField(),
+                "externalID": serializers.CharField(required=False),
+                "url_pdf": serializers.URLField(required=False),
+                "base64_pdf": serializers.CharField(required=False),
+                "signers": serializers.ListField(
+                    child=inline_serializer(
+                        name="SignerInput",
+                        fields={
+                            "name": serializers.CharField(),
+                            "email": serializers.EmailField(),
+                            "externalID": serializers.CharField(required=False),
+                        },
+                    ),
+                    required=False,
+                ),
+            },
+        ),
+        responses={
+            201: DocumentSerializer,
+            400: OpenApiResponse(description="Dados inválidos"),
+        },
+    ),
+)
 class DocumentListCreateView(generics.ListCreateAPIView):
     serializer_class = DocumentSerializer
 
@@ -180,6 +218,26 @@ class DocumentListCreateView(generics.ListCreateAPIView):
         return Response(DocumentSerializer(document).data, status=201)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        summary="Obter documento",
+        responses=DocumentSerializer,
+    ),
+    put=extend_schema(
+        summary="Atualizar documento",
+        request=DocumentSerializer,
+        responses=DocumentSerializer,
+    ),
+    patch=extend_schema(
+        summary="Atualizar parcialmente documento",
+        request=DocumentSerializer,
+        responses=DocumentSerializer,
+    ),
+    delete=extend_schema(
+        summary="Excluir documento",
+        responses={204: OpenApiResponse(description="Documento removido")},
+    ),
+)
 class DocumentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer

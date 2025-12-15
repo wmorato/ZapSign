@@ -11,6 +11,7 @@ from rest_framework import serializers
 
 logger = logging.getLogger(__name__)
 
+
 @extend_schema(
     summary="Webhook ZapSign",
     description="Endpoint chamado pela ZapSign para notificar eventos de documentos e signatários.",
@@ -76,7 +77,7 @@ class ZapSignWebhookView(APIView):
             # Atualiza a URL do PDF assinado se estiver presente no payload
             if signed_file_url and document.signed_file_url != signed_file_url:
                 document.signed_file_url = signed_file_url
-                logger.info(f"[Webhook] URL do PDF assinado atualizada.")
+                logger.info("[Webhook] URL do PDF assinado atualizada.")
 
             document.save()
 

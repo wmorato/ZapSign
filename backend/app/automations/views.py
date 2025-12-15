@@ -22,13 +22,16 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiExample,
     inline_serializer,
+    OpenApiResponse,
 )
+from rest_framework import serializers
 
 logger = logging.getLogger(__name__)
 
 # ====================================================================
 # 1. DocumentAnalysisAutomationView (GET)
 # ====================================================================
+
 
 @extend_schema(
     summary="Obter Resultado da Análise de IA para Automação",
@@ -102,6 +105,7 @@ class DocumentAnalysisAutomationView(APIView):
 # ====================================================================
 # 2. DocumentReanalyzeAutomationView (POST)
 # ====================================================================
+
 
 @extend_schema(
     summary="Disparar Reanálise de IA para Automação",
@@ -222,6 +226,7 @@ class DocumentReanalyzeAutomationView(APIView):
 # 3. ReportGenerationAutomationView (POST)
 # ====================================================================
 
+
 @extend_schema(
     summary="Gerar relatório de documentos por período para automação",
     description=(
@@ -280,13 +285,24 @@ class DocumentReanalyzeAutomationView(APIView):
     auth=[],
 )
 class ReportGenerationAutomationView(APIView):
-    """
-    Endpoint para o n8n disparar a geração de relatórios.
-    """
-
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=inline_serializer(
+            name="ReportGenerationRequest",
+            fields={
+                "report_type": serializers.CharField(),
+                "start_date": serializers.DateField(),
+                "end_date": serializers.DateField(),
+                "company_id": serializers.IntegerField(),
+            },
+        ),
+        responses={
+            200: OpenApiResponse(description="Relatório gerado com sucesso"),
+            400: OpenApiResponse(description="Dados inválidos"),
+        },
+    )
     def post(self, request):
         report_data = request.data
 
@@ -319,14 +335,11 @@ class ReportGenerationAutomationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        documents = (
-            Document.objects.filter(
-                company_id=company_id,
-                created_at__date__gte=start_date,
-                created_at__date__lte=end_date,
-            )
-            .order_by("-created_at")
-        )
+        documents = Document.objects.filter(
+            company_id=company_id,
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+        ).order_by("-created_at")
 
         serializer = DocumentSerializer(documents, many=True)
 
