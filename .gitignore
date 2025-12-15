@@ -35,6 +35,7 @@ frontend/.cache/
 frontend/.idea/
 frontend/.vscode/
 frontend/coverage
+anotacoes/
 
 
 # ===============================
@@ -55,3 +56,5 @@ docker-compose.override.yml
 # ===============================
 .idea/
 .vscode/
+
+entrevista

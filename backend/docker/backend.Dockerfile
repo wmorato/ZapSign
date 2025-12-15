@@ -21,6 +21,6 @@ COPY . /app
 # Expor porta padrão do Django
 EXPOSE 8000
 
-# Rodar migrações automaticamente e iniciar o servidor ASGI (Daphne)
-# O daphne é o servidor ASGI que suporta WebSockets
-CMD ["bash", "-c", "python manage.py migrate && daphne config.asgi:application -b 0.0.0.0 -p 8000"]
+# Rodar collectstatic, migrações e iniciar o servidor ASGI (Daphne)
+# collectstatic: Reúne arquivos CSS/JS do Admin para o WhiteNoise servir
+CMD ["bash", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && daphne config.asgi:application -b 0.0.0.0 -p 8000"]

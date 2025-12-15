@@ -59,6 +59,7 @@ npm start
 
 * **Frontend:** [http://localhost:4200](http://localhost:4200)
 * **Backend API:** [http://localhost:8000](http://localhost:8000)
+* **Backend Admin:** [http://localhost:8000/admin/](http://localhost:8000/admin/)
 * **Swagger UI:** [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
 * **OpenAPI JSON:** [http://localhost:8000/api/schema.json](http://localhost:8000/api/schema.json)
 

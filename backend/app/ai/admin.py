@@ -2,6 +2,8 @@
 from django.contrib import admin
 from .models import DocumentAnalysis
 
+# gera interface para gerenciar os Dados.
+
 
 @admin.register(DocumentAnalysis)
 class DocumentAnalysisAdmin(admin.ModelAdmin):

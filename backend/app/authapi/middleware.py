@@ -20,6 +20,7 @@ class ApiKeyMiddleware:
             "/auth/",
             "/webhook/",
             "/api/",
+            "/static/",
         ]
 
         if any(request.path.startswith(p) for p in public_paths):

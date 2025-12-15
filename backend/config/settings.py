@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # <--- WhiteNoise para servir arquivos estáticos
     "django.contrib.sessions.middleware.SessionMiddleware",
     "app.core.middleware.error_handler.GlobalExceptionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -139,6 +140,14 @@ USE_TZ = True
 # STATIC
 # ========================================================================
 STATIC_URL = "static/"
+STATIC_ROOT = (
+    BASE_DIR / "staticfiles"
+)  # <--- Pasta onde o collectstatic reunirá os arquivos
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # ========================================================================
 # REST FRAMEWORK & JWT
