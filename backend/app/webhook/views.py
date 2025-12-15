@@ -5,10 +5,34 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from app.document.models import Document
 from app.signer.models import Signer
+from drf_spectacular.utils import extend_schema, OpenApiResponse, inline_serializer
+from rest_framework import serializers
+
 
 logger = logging.getLogger(__name__)
 
-
+@extend_schema(
+    summary="Webhook ZapSign",
+    description="Endpoint chamado pela ZapSign para notificar eventos de documentos e signatários.",
+    request=inline_serializer(
+        name="ZapSignWebhookPayload",
+        fields={
+            "token": serializers.CharField(),
+            "event_type": serializers.CharField(required=False),
+            "status": serializers.CharField(required=False),
+            "signed_file": serializers.URLField(required=False),
+            "signers": serializers.ListField(
+                child=serializers.DictField(),
+                required=False,
+            ),
+        },
+    ),
+    responses={
+        200: OpenApiResponse(description="Evento processado com sucesso."),
+        500: OpenApiResponse(description="Erro interno."),
+    },
+    auth=[],
+)
 class ZapSignWebhookView(APIView):
     """
     Recebe eventos de webhook da ZapSign para atualizar o status do documento e signatários.

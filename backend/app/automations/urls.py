@@ -3,7 +3,7 @@ from .views import (
     DocumentAnalysisAutomationView,
     ReportGenerationAutomationView,
     DocumentReanalyzeAutomationView,
-)  # <--- ADICIONADO DocumentReanalyzeAutomationView
+)
 
 urlpatterns = [
     path(

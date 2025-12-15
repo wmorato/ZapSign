@@ -38,3 +38,6 @@ djangorestframework-simplejwt==5.3.1
 channels==4.1.0
 channels_redis==4.2.0
 daphne==4.1.2
+
+# Documentação Dinâmica
+drf-spectacular==0.27.2 

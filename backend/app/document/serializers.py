@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from app.document.models import Document
 from app.ai.models import DocumentAnalysis
-from app.signer.models import Signer  # Importar o modelo Signer
+from app.signer.models import Signer
+from drf_spectacular.utils import extend_schema_field
 
 
 class DocumentAnalysisSerializer(serializers.ModelSerializer):
@@ -23,7 +24,7 @@ class DocumentAnalysisSerializer(serializers.ModelSerializer):
         read_only_fields = fields  # Todos os campos são somente leitura para a API
 
 
-class SignerCreateUpdateSerializer(serializers.ModelSerializer):  # <--- NOVO SERIALIZER
+class SignerCreateUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer para criar e atualizar signatários, usado aninhado no DocumentSerializer.
     Permite receber 'id' para identificar signatários existentes.
@@ -45,10 +46,9 @@ class SignerCreateUpdateSerializer(serializers.ModelSerializer):  # <--- NOVO SE
 class DocumentSerializer(serializers.ModelSerializer):
     signers_db = serializers.SerializerMethodField(read_only=True)
     ai_analysis = DocumentAnalysisSerializer(read_only=True, allow_null=True)
-    # Adicionado o serializer de signatários para escrita
     signers = SignerCreateUpdateSerializer(
         many=True, required=False, source="signers_set"
-    )  # <--- MODIFICADO
+    )
 
     class Meta:
         model = Document
@@ -63,10 +63,10 @@ class DocumentSerializer(serializers.ModelSerializer):
             "created_by",
             "company",
             "externalID",
-            "url_pdf",  # <--- ADICIONADO: url_pdf agora é um campo do modelo
+            "url_pdf",
             "signers_db",
             "ai_analysis",
-            "signers",  # <--- ADICIONADO: para permitir a escrita de signatários
+            "signers",
         ]
         read_only_fields = (
             "openID",
@@ -74,10 +74,11 @@ class DocumentSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
             "last_updated_at",
-            "signers_db",  # signers_db continua sendo read-only, 'signers' é para escrita
-            "company",  # Company is assigned automatically based on user
+            "signers_db",
+            "company",
         )
 
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_signers_db(self, obj):
         signers_queryset = obj.signers.all()
         return [

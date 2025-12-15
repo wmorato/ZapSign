@@ -18,6 +18,14 @@ from django.conf import settings
 import logging
 import base64
 from app.utils.pdf_utils import extract_text_from_pdf
+from drf_spectacular.utils import (
+    extend_schema,
+    inline_serializer,
+    OpenApiResponse,
+)
+
+from rest_framework import serializers
+
 
 logger = logging.getLogger(__name__)
 
@@ -339,6 +347,19 @@ class DocumentDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    summary="Obter link de download do PDF assinado",
+    responses={
+        200: inline_serializer(
+            name="DocumentDownloadResponse",
+            fields={
+                "file_url": serializers.URLField(),
+            },
+        ),
+        400: OpenApiResponse(description="Documento inválido ou não assinado."),
+        404: OpenApiResponse(description="Documento não encontrado."),
+    },
+)
 class DocumentDownloadPDFView(APIView):
     """
     Endpoint para obter o link do PDF assinado para download.
@@ -408,6 +429,20 @@ class DocumentDownloadPDFView(APIView):
             )
 
 
+@extend_schema(
+    summary="Sincronizar status do documento com a ZapSign",
+    responses={
+        200: inline_serializer(
+            name="DocumentSyncStatusResponse",
+            fields={
+                "new_status": serializers.CharField(),
+            },
+        ),
+        400: OpenApiResponse(description="Documento inválido ou sem token."),
+        404: OpenApiResponse(description="Documento não encontrado."),
+        500: OpenApiResponse(description="Erro ao sincronizar com ZapSign."),
+    },
+)
 class DocumentSyncStatusView(APIView):
     """
     Endpoint para sincronizar manualmente o status de um documento com a ZapSign.
