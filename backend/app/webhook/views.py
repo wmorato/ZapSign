@@ -1,12 +1,18 @@
-# D:\Projetos\DesafioTecnico\ZapSign\backend\app\webhook\views.py
+import json
 import logging
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ParseError
+from rest_framework import serializers
+
 from app.document.models import Document
 from app.signer.models import Signer
+
 from drf_spectacular.utils import extend_schema, OpenApiResponse, inline_serializer
-from rest_framework import serializers
+
+
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +36,7 @@ logger = logging.getLogger(__name__)
     ),
     responses={
         200: OpenApiResponse(description="Evento processado com sucesso."),
+        400: OpenApiResponse(description="Payload inválido."),
         500: OpenApiResponse(description="Erro interno."),
     },
     auth=[],
@@ -39,70 +46,85 @@ class ZapSignWebhookView(APIView):
     Recebe eventos de webhook da ZapSign para atualizar o status do documento e signatários.
     """
 
-    permission_classes = [AllowAny]  # Webhooks não usam autenticação de usuário/API Key
+    permission_classes = [AllowAny]
 
     def post(self, request):
+        # =========================================================
+        # 1. Parse defensivo do payload (JSON puro)
+        # =========================================================
         try:
-            payload = request.data
-            doc_token = payload.get("token")
-            event_type = payload.get("event_type")
+            payload = json.loads(request.body.decode("utf-8"))
+        except json.JSONDecodeError:
+            logger.error(
+                "[Webhook] Payload inválido recebido: %s",
+                request.body,
+            )
+            raise ParseError("Payload não é um JSON válido")
 
+        doc_token = payload.get("token")
+        event_type = payload.get("event_type")
+
+        logger.info(
+            "[Webhook] Evento recebido '%s' para documento %s",
+            event_type,
+            doc_token,
+        )
+
+        if not doc_token:
+            return Response({"error": "Token ausente"}, status=400)
+
+        # =========================================================
+        # 2. Atualizar Documento
+        # =========================================================
+        try:
+            document = Document.objects.get(token=doc_token)
+        except Document.DoesNotExist:
+            logger.warning(
+                "[Webhook] Documento %s não encontrado localmente",
+                doc_token,
+            )
+            return Response({"ignored": "Document not found"}, status=200)
+
+        new_status = payload.get("status")
+        signed_file_url = payload.get("signed_file")
+
+        if new_status and document.status != new_status:
+            document.status = new_status
             logger.info(
-                f"[Webhook] Recebido evento '{event_type}' para documento {doc_token}"
+                "[Webhook] Status do documento atualizado para %s",
+                new_status,
             )
 
-            if not doc_token:
-                return Response({"error": "Token ausente"}, status=400)
+        if signed_file_url and document.signed_file_url != signed_file_url:
+            document.signed_file_url = signed_file_url
+            logger.info("[Webhook] URL do PDF assinado atualizada")
 
-            # 1. Atualizar Documento
-            try:
-                # Busca o documento pelo token
-                document = Document.objects.get(token=doc_token)
-            except Document.DoesNotExist:
-                logger.warning(
-                    f"[Webhook] Documento {doc_token} não encontrado localmente."
-                )
-                return Response({"ignored": "Document not found"}, status=200)
+        document.save()
 
-            new_status = payload.get("status")
-            signed_file_url = payload.get("signed_file")  # Obter a URL do PDF assinado
+        # =========================================================
+        # 3. Atualizar Signatários
+        # =========================================================
+        remote_signers = payload.get("signers", [])
 
-            # Atualiza status
-            if document.status != new_status:
-                document.status = new_status
+        for r_signer in remote_signers:
+            signer_token = r_signer.get("token")
+            signer_status = r_signer.get("status")
+
+            if not signer_token:
+                continue
+
+            local_signer = Signer.objects.filter(
+                token=signer_token,
+                document=document,
+            ).first()
+
+            if local_signer and signer_status and local_signer.status != signer_status:
+                local_signer.status = signer_status
+                local_signer.save()
                 logger.info(
-                    f"[Webhook] Status do documento atualizado para: {new_status}"
+                    "[Webhook] Signatário %s atualizado para %s",
+                    local_signer.name,
+                    signer_status,
                 )
 
-            # Atualiza a URL do PDF assinado se estiver presente no payload
-            if signed_file_url and document.signed_file_url != signed_file_url:
-                document.signed_file_url = signed_file_url
-                logger.info("[Webhook] URL do PDF assinado atualizada.")
-
-            document.save()
-
-            # 2. Atualizar Signatários (Iterando o array 'signers' do JSON)
-            remote_signers = payload.get("signers", [])
-            for r_signer in remote_signers:
-                signer_token = r_signer.get("token")
-                signer_status = r_signer.get("status")
-
-                if signer_token:
-                    # Tenta achar o signatário pelo token específico dele
-                    # Filtrando também pelo documento para garantir integridade
-                    local_signer = Signer.objects.filter(
-                        token=signer_token, document=document
-                    ).first()
-
-                    if local_signer and local_signer.status != signer_status:
-                        local_signer.status = signer_status
-                        local_signer.save()
-                        logger.info(
-                            f"[Webhook] Signatário {local_signer.name} atualizado para: {signer_status}"
-                        )
-
-            return Response({"success": True}, status=200)
-
-        except Exception as e:
-            logger.error(f"[Webhook] Erro crítico: {e}", exc_info=True)
-            return Response({"error": "Internal Server Error"}, status=500)
+        return Response({"success": True}, status=200)

@@ -22,9 +22,8 @@
                 <label for="url_pdf">URL do PDF:</label>
                 <!-- ADICIONADO: (input)="onUrlInput($event)" e [disabled] -->
                 <input id="url_pdf" type="url" formControlName="url_pdf" (input)="onUrlInput($event)"
-                    [disabled]="documentForm.get('local_pdf_file')?.value && documentForm.get('local_pdf_file')?.enabled"
-                    placeholder="Ex: https://example.com/documento.pdf"
-                    [class.is-invalid]="(documentForm.get('url_pdf')?.invalid && documentForm.get('url_pdf')?.touched) || (documentForm.errors?.['urlOrFileRequired'] && documentForm.get('url_pdf')?.touched && !documentForm.get('base64_pdf')?.value)" />
+                    placeholder="Ex: https://example.com/documento.pdf" />
+
                 <div *ngIf="documentForm.get('url_pdf')?.errors?.['pattern'] && documentForm.get('url_pdf')?.touched"
                     class="invalid-feedback">
                     A URL do PDF deve ser um formato válido (iniciando com http/https).
@@ -41,10 +40,10 @@
             <div class="form-group" [class.disabled-group]="isEditMode">
                 <label for="local_pdf_file">Upload de PDF Local (Máx. {{ maxFileSizeMB }}MB):</label>
                 <!-- ADICIONADO: formControlName="local_pdf_file" e [disabled] -->
-                <input id="local_pdf_file" type="file" formControlName="local_pdf_file" (change)="onFileSelected($event)" accept="application/pdf"
-                    [disabled]="isEditMode || documentForm.get('url_pdf')?.value"
-                    [class.is-invalid]="(documentForm.get('base64_pdf')?.errors?.['maxSize'] || documentForm.get('base64_pdf')?.errors?.['invalidType']) && documentForm.get('base64_pdf')?.touched" />
-                
+                <input id="local_pdf_file" type="file" formControlName="local_pdf_file"
+                    (change)="onFileSelected($event)" accept="application/pdf" />
+
+
                 <div *ngIf="isEditMode" class="invalid-feedback">
                     O arquivo só pode ser adicionado criando um novo documento.
                 </div>

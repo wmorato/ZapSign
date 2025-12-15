@@ -14,6 +14,12 @@ urlpatterns = [
     # ROTAS DE DOCUMENTAÇÃO DINÂMICA (SWAGGER/OPENAPI)
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
+        "api/schema.json",
+        SpectacularAPIView.as_view(),
+        {"format": "json"},
+        name="schema-json",
+    ),
+    path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",

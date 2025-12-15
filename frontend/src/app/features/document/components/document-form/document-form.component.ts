@@ -9,16 +9,16 @@ import { CommonModule } from '@angular/common';
 
 // Validador customizado: Pelo menos um campo deve ser preenchido (url_pdf ou base64_pdf)
 function urlOrFileRequiredValidator(control: AbstractControl): ValidationErrors | null {
-    const url = control.get('url_pdf')?.value;
-    const base64 = control.get('base64_pdf')?.value;
+  const url = control.get('url_pdf')?.value;
+  const base64 = control.get('base64_pdf')?.value;
 
-    // Se a URL ou Base64 estiver preenchido, é válido.
-    if (url || base64) {
-        return null;
-    }
-    
-    // Se nenhum estiver preenchido, retorna erro
-    return { urlOrFileRequired: true };
+  // Se a URL ou Base64 estiver preenchido, é válido.
+  if (url || base64) {
+    return null;
+  }
+
+  // Se nenhum estiver preenchido, retorna erro
+  return { urlOrFileRequired: true };
 }
 
 
@@ -36,7 +36,7 @@ export class DocumentFormComponent implements OnInit {
   errorMessage: string | null = null;
   successMessage: string | null = null;
   maxFileSizeMB = 10;
-  
+
   // Armazenar signatários originais para identificar remoções
   private originalSigners: Signer[] = [];
 
@@ -59,13 +59,16 @@ export class DocumentFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.isEditMode) {
+      this.documentForm.get('local_pdf_file')?.disable();
+    }
     this.documentId = this.route.snapshot.params['id'];
     if (this.documentId) {
       this.isEditMode = true;
       // No modo de edição, apenas a URL é suportada para reanálise
       this.documentForm.get('url_pdf')?.setValidators([Validators.pattern('https?://.+')]);
       this.documentForm.get('base64_pdf')?.setValidators(null);
-      
+
       this.documentService.getDocumentById(this.documentId).subscribe({
         next: (document) => {
           this.documentForm.patchValue({
@@ -94,7 +97,7 @@ export class DocumentFormComponent implements OnInit {
     } else {
       // Se for novo documento, adicione um signatário padrão
       this.addSigner();
-      
+
       // Validações adicionais para o modo de criação: 
       this.documentForm.get('url_pdf')?.setValidators([Validators.pattern('https?://.+')]);
       this.documentForm.get('url_pdf')?.updateValueAndValidity();
@@ -123,81 +126,93 @@ export class DocumentFormComponent implements OnInit {
     this.signers.removeAt(index);
   }
 
-  // NOVO MÉTODO DE CHAVEAMENTO: Quando o usuário digita na URL
-  onUrlInput(event: any): void {
-    const url = event.target.value;
+  // Quando o usuário digita a URL do PDF
+  onUrlInput(event: Event): void {
+    const url = (event.target as HTMLInputElement).value;
+
+    const fileCtrl = this.documentForm.get('local_pdf_file');
+    const base64Ctrl = this.documentForm.get('base64_pdf');
+
     if (url) {
-      // Se a URL tem valor, desabilita o upload de arquivo local e limpa o base64
-      this.documentForm.get('local_pdf_file')?.disable();
-      this.documentForm.get('base64_pdf')?.setValue('');
-    } else {
-      // Se a URL está vazia, reabilita o upload de arquivo
-      this.documentForm.get('local_pdf_file')?.enable();
+      // URL preenchida: desabilita upload local e limpa base64
+      fileCtrl?.disable();
+      fileCtrl?.setValue(null);
+
+      base64Ctrl?.setValue('');
+      base64Ctrl?.setErrors(null);
+    } else if (!this.isEditMode) {
+      // URL vazia: reabilita upload local (se não estiver em edição)
+      fileCtrl?.enable();
     }
-    this.documentForm.updateValueAndValidity(); // Força a revalidação
+
+    this.documentForm.updateValueAndValidity();
   }
 
-  // MÉTODO MODIFICADO: Lidar com seleção de arquivo local e conversão para Base64
-  onFileSelected(event: any): void {
-    const file: File = event.target.files?.[0]; // Pega o primeiro arquivo
-    
-    // Reseta o estado do Base64
-    this.documentForm.get('base64_pdf')?.setValue('');
-    this.documentForm.get('base64_pdf')?.markAsTouched();
-    
-    // Habilita/Desabilita o campo de URL com base na existência do arquivo
-    if (file) {
-      this.documentForm.get('url_pdf')?.disable();
-    } else {
-      this.documentForm.get('url_pdf')?.enable();
-      this.documentForm.get('local_pdf_file')?.setValue(null); // Limpa o controle de arquivo
-      this.documentForm.updateValueAndValidity(); // Força a revalidação
-      return;
-    }
 
-    if (file.size > this.maxFileSizeMB * 1024 * 1024) {
-      this.documentForm.get('base64_pdf')?.setErrors({ maxSize: true });
-      this.errorMessage = `O arquivo é muito grande. O limite é ${this.maxFileSizeMB}MB.`;
-      this.documentForm.get('url_pdf')?.enable(); // Reabilita a URL
-      return;
-    }
+  onFileSelected(event: Event): void {
+    const file: File | undefined = (event.target as HTMLInputElement).files?.[0];
 
-    if (file.type !== 'application/pdf') {
-      this.documentForm.get('base64_pdf')?.setErrors({ invalidType: true });
-      this.errorMessage = 'Apenas arquivos PDF são suportados.';
-      this.documentForm.get('url_pdf')?.enable(); // Reabilita a URL
-      return;
-    }
+    const urlCtrl = this.documentForm.get('url_pdf');
+    const base64Ctrl = this.documentForm.get('base64_pdf');
+    const fileCtrl = this.documentForm.get('local_pdf_file');
 
-    // Limpa erros customizados se o arquivo for válido (os validators built-in são null)
-    this.documentForm.get('base64_pdf')?.setErrors(null);
+    // Reset inicial
+    base64Ctrl?.setValue('');
+    base64Ctrl?.setErrors(null);
+    base64Ctrl?.markAsTouched();
     this.errorMessage = null;
 
+    if (!file) {
+      // Nenhum arquivo selecionado
+      urlCtrl?.enable();
+      fileCtrl?.setValue(null);
+      this.documentForm.updateValueAndValidity();
+      return;
+    }
+
+    // Arquivo selecionado: desabilita URL
+    urlCtrl?.disable();
+    urlCtrl?.setValue('');
+    urlCtrl?.setErrors(null);
+
+    // Validação de tamanho
+    if (file.size > this.maxFileSizeMB * 1024 * 1024) {
+      base64Ctrl?.setErrors({ maxSize: true });
+      this.errorMessage = `O arquivo é muito grande. O limite é ${this.maxFileSizeMB}MB.`;
+      urlCtrl?.enable();
+      return;
+    }
+
+    // Validação de tipo
+    if (file.type !== 'application/pdf') {
+      base64Ctrl?.setErrors({ invalidType: true });
+      this.errorMessage = 'Apenas arquivos PDF são suportados.';
+      urlCtrl?.enable();
+      return;
+    }
+
+    // Leitura do arquivo
     const reader = new FileReader();
-    reader.onload = (e: any) => {
-      const base64StringWithPrefix: string = e.target.result;
-      
-      // Remove o prefixo (e.g., data:application/pdf;base64,) conforme ZapSign docs
-      const base64Content = base64StringWithPrefix.split(',')[1]; 
-      
-      this.documentForm.get('base64_pdf')?.setValue(base64Content);
-      this.documentForm.get('base64_pdf')?.setErrors(null);
-      
-      // Garante que o campo de URL está desabilitado
-      this.documentForm.get('url_pdf')?.disable();
-      this.documentForm.get('url_pdf')?.setValue(''); // Limpa o valor de URL se estava preenchido
-      this.documentForm.get('url_pdf')?.setErrors(null);
-      this.documentForm.updateValueAndValidity(); // Força revalidação do grupo
-    };
-    reader.onerror = () => {
-      this.errorMessage = 'Erro ao ler o arquivo.';
-      this.documentForm.get('base64_pdf')?.setErrors({ readError: true });
-      this.documentForm.get('url_pdf')?.enable(); // Reabilita a URL em caso de erro de leitura
+
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      const result = e.target?.result as string;
+      const base64Content = result.split(',')[1];
+
+      base64Ctrl?.setValue(base64Content);
+      base64Ctrl?.setErrors(null);
+
+      this.documentForm.updateValueAndValidity();
     };
 
-    reader.readAsDataURL(file); // Lê como Data URL para obter a string Base64
+    reader.onerror = () => {
+      this.errorMessage = 'Erro ao ler o arquivo.';
+      base64Ctrl?.setErrors({ readError: true });
+      urlCtrl?.enable();
+    };
+
+    reader.readAsDataURL(file);
   }
-  // FIM MÉTODO MODIFICADO
+
 
   onSubmit(): void {
     this.errorMessage = null;
@@ -206,7 +221,7 @@ export class DocumentFormComponent implements OnInit {
     if (this.documentForm.valid) {
       // Pega o valor RAW para incluir campos disabled (que são ignorados pelo .value)
       const rawFormValue = this.documentForm.getRawValue();
-      
+
       // Ajuste: Apenas url_pdf ou base64_pdf virão preenchidos (baseado no chaveamento)
       const documentData: any = {
         name: rawFormValue.name,
@@ -224,11 +239,11 @@ export class DocumentFormComponent implements OnInit {
         // Se há URL, remove Base64 (sempre haverá um desses dois se a validação do form.valid passou)
         delete documentData.base64_pdf;
       } else {
-          // A validação mútua falhou (nunca deveria chegar aqui se o form.valid é true)
-          this.errorMessage = 'É obrigatório fornecer a URL do PDF OU um arquivo local.';
-          return;
+        // A validação mútua falhou (nunca deveria chegar aqui se o form.valid é true)
+        this.errorMessage = 'É obrigatório fornecer a URL do PDF OU um arquivo local.';
+        return;
       }
-      
+
       // Lógica para identificar signatários a serem removidos
       const currentSignerIds = this.signers.controls
         .map(control => control.get('id')?.value)
@@ -246,7 +261,7 @@ export class DocumentFormComponent implements OnInit {
       if (this.isEditMode && this.documentId) {
         // NO MODO DE EDIÇÃO, BASE64_PDF NÃO É PERMITIDO.
         if (documentData.base64_pdf) {
-             delete documentData.base64_pdf;
+          delete documentData.base64_pdf;
         }
 
         this.documentService.updateDocument(this.documentId, documentData).subscribe({

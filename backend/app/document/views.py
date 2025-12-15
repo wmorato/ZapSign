@@ -26,6 +26,7 @@ from drf_spectacular.utils import (
 )
 
 from rest_framework import serializers
+from rest_framework.generics import GenericAPIView
 
 
 logger = logging.getLogger(__name__)
@@ -487,6 +488,10 @@ class DocumentDownloadPDFView(APIView):
             )
 
 
+class DocumentSyncStatusSerializer(serializers.Serializer):
+    new_status = serializers.CharField()
+
+
 @extend_schema(
     summary="Sincronizar status do documento com a ZapSign",
     responses={
@@ -501,7 +506,8 @@ class DocumentDownloadPDFView(APIView):
         500: OpenApiResponse(description="Erro ao sincronizar com ZapSign."),
     },
 )
-class DocumentSyncStatusView(APIView):
+class DocumentSyncStatusView(GenericAPIView):
+    serializer_class = DocumentSyncStatusSerializer
     """
     Endpoint para sincronizar manualmente o status de um documento com a ZapSign.
     """

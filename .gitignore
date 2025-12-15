@@ -19,6 +19,7 @@ backend/media/
 backend/staticfiles/
 backend/.idea/
 backend/.vscode/
+backend/.coverage
 
 # Secrets locais
 backend/**/settings_local.py
@@ -33,6 +34,8 @@ frontend/.angular/
 frontend/.cache/
 frontend/.idea/
 frontend/.vscode/
+frontend/coverage
+
 
 # ===============================
 # BUILD / CACHE

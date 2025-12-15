@@ -1,11 +1,10 @@
 # D:\Projetos\DesafioTecnico\ZapSign\backend\app\core\management\commands\broadcast_test.py
 from django.core.management.base import BaseCommand, CommandError
-import django  # <--- ADICIONADO
-import os  # <--- ADICIONADO
+import django
+import os
 
-# Força o carregamento do Django antes de importar qualquer coisa que use settings/channels
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-django.setup()  # <--- ADICIONADO: Garante que o registro de apps e settings estejam prontos
+django.setup()
 
 # Agora é seguro importar o serviço que depende do Channel Layer
 from app.core.websocket.services import WebSocketService

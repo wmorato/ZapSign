@@ -1,97 +1,183 @@
-# ZapSign Frontend - Desafio Técnico
+# ZapSign - Frontend
 
 ## Visão Geral
 
-Este projeto implementa o frontend para o desafio técnico da ZapSign, utilizando **Angular** com componentes reativos e **TypeScript**. O objetivo é fornecer uma interface de usuário fluida (sem recarregamento de página) para a gestão de documentos, integrando-se com o backend Django via APIs RESTful e WebSockets.
+Este diretório contém o **frontend** do projeto ZapSign, desenvolvido em **Angular 17** utilizando **Standalone Components**, **Reactive Forms**, **Jest** para testes automatizados e integração completa com o backend Django via API REST e WebSocket.
 
-## Stacks Utilizadas
+O frontend é responsável por:
 
-*   **Framework:** Angular 17+
-*   **Linguagem:** TypeScript
-*   **Estilização:** SCSS
-*   **Testes:** Vitest (substituindo Karma/Jasmine)
-*   **Infraestrutura Local:** Docker, Docker Compose, Nginx (para servir e proxy)
+* Autenticação de usuários
+* Gestão de documentos e signatários
+* Visualização de relatórios
+* Exibição do status de análises de IA em tempo real
+* Integração com WebSocket para atualização automática de eventos
 
-## Configuração e Setup Local
+---
 
-### Pré-requisitos
+## Tecnologias Utilizadas
 
-1.  Docker e Docker Compose instalados.
-2.  O backend deve estar em execução (consulte o README do Backend).
+* Angular 17
+* TypeScript
+* RxJS
+* Angular Reactive Forms
+* Jest (testes unitários)
+* WebSocket
+* Docker
 
-### 1. Inicialização dos Serviços
+---
 
-Execute o comando na pasta `backend/docker/` (o `docker-compose.yml` nesta pasta gerencia o frontend também):
+## Pré-requisitos
+
+* Node.js 20+
+* NPM 9+
+* Docker e Docker Compose (opcional)
+
+---
+
+## Instalação
 
 ```bash
-docker-compose build
-docker-compose up -d
+cd frontend
+npm install
 ```
 
-Aguarde alguns minutos para que o contêiner `zapsign_frontend` inicie.
+---
 
-### 2. Acesso à Aplicação
+## Execução do Projeto
 
-Acesse a aplicação no seu navegador:
+### Modo Desenvolvimento
+
+```bash
+npm start
+```
+
+A aplicação ficará disponível em:
 
 ```
 http://localhost:4200
 ```
 
-## Autenticação e Acesso
+### Usando Docker
 
-### Credenciais de Teste
+```bash
+docker compose up -d frontend
+```
 
-Utilize as credenciais criadas pelo script `init_data` do backend:
+---
 
-*   **Email:** `gerente_a@teste.com`
-*   **Senha:** `123`
+## Estrutura de Pastas (Resumo)
 
-### Fluxo de Autenticação
+```
+src/app
+├── core
+│   ├── auth
+│   ├── components
+│   ├── interceptors
+│   └── services
+├── features
+│   ├── auth
+│   ├── company
+│   ├── dashboard
+│   └── document
+└── shared
+```
 
-1.  O usuário faz login na rota `/login`.
-2.  O `AuthService` obtém o token JWT do backend.
-3.  O `AuthInterceptor` anexa o token JWT (`Authorization: Bearer <token>`) a todas as requisições subsequentes para o backend.
+---
 
-## Funcionalidades Implementadas
+## Funcionalidades Principais
 
-### 1. Gestão de Documentos (CRUD)
+### Autenticação
 
-*   **Lista de Documentos (`/documents`):** Exibe todos os documentos da empresa.
-    *   **Atualização em Tempo Real:** Utiliza **WebSocket** para receber notificações de criação, atualização e exclusão de documentos sem recarregar a página.
-*   **Criação/Edição de Documentos (`/documents/new` ou `/documents/:id/edit`):** Formulário unificado para criar ou editar documentos, incluindo a gestão de signatários aninhados.
-*   **Detalhes do Documento (`/documents/:id`):** Exibe informações completas, incluindo a análise de IA.
+* Tela de login integrada ao backend
+* Interceptor HTTP injeta automaticamente o token de autenticação
 
-### 2. Análise de IA e WebSockets
+### Dashboard
 
-*   **Visualização da Análise:** O `DocumentDetailComponent` exibe o `ai_analysis` (resumo, tópicos faltantes, insights).
-*   **Status em Tempo Real:** Utiliza **WebSocket** para receber o status da análise de IA (`pending`, `processing`, `completed`, `failed`) em tempo real, garantindo que o usuário não precise atualizar a página.
-*   **Reanálise:** Botão para disparar a reanálise de IA via endpoint de automação do backend.
+* Visão geral das funcionalidades
+* Acesso rápido para documentos, empresas e relatórios
 
-### 3. Automação e Relatórios
+### Gestão de Empresas
 
-*   **Sincronização Manual:** Botão "Sincronizar" na lista de documentos para forçar a atualização do status com a ZapSign.
-*   **Relatórios (`/reports`):** O `DocumentReportsComponent` permite:
-    *   Filtrar documentos por período.
-    *   Visualizar um resumo de métricas (Assinados, Pendentes, Alto Risco, IA Concluída).
-    *   Exportar a lista detalhada para CSV.
-*   **Gestão de Risco (`/documents/risk`):** Painel dedicado para visualizar documentos pendentes classificados por nível de risco (dias pendentes) e realizar ações em massa (simuladas).
+* Listagem de empresas
+* Visualização e gerenciamento de tokens de API
 
-### 4. Componentes Reativos e Boas Práticas
+### Gestão de Documentos
 
-*   **Componentes Reativos:** Uso extensivo de `FormGroup` e `FormArray` para o formulário de documentos e signatários.
-*   **Serviços Dedicados:** Separação da lógica de comunicação com a API em `ApiService`, `AuthService`, `CompanyService` e `DocumentService`.
+* Criação de documentos por URL ou upload de PDF
+* Gestão de signatários
+* Status do documento sincronizado com ZapSign
 
-## Execução de Testes (Vitest)
+### Análise por IA
 
-O projeto utiliza Vitest para testes unitários, focando no mocking manual de dependências para garantir a velocidade e o isolamento dos testes.
+* Exibição do status da análise
+* Indicadores visuais para documentos com IA pendente ou concluída
 
-Execute os testes na pasta `frontend/`:
+### Relatórios
+
+* Filtro por período
+* Cards dinâmicos de status
+* Exportação de dados
+
+---
+
+## Integração com WebSocket
+
+O frontend se conecta automaticamente ao backend via **WebSocket** para:
+
+* Atualização em tempo real do status dos documentos
+* Atualização de signatários
+* Notificação de conclusão da análise por IA
+
+Essa comunicação elimina a necessidade de polling e mantém a interface sempre sincronizada.
+
+---
+
+## Testes Automatizados
+
+O projeto possui cobertura extensa de testes unitários utilizando **Jest**.
+
+### Executar testes
 
 ```bash
 npm test
-
-npm test nome_do_teste
 ```
 
-**Observação:** O arquivo `vitest.config.ts` e o `KB/KB.md` contêm a configuração e as boas práticas para o ambiente de teste Angular/Vitest.
+### Gerar relatório de cobertura
+
+```bash
+npm test -- --coverage
+```
+
+Relatório gerado em:
+
+```
+coverage/
+```
+
+---
+
+## Integração com Backend
+
+* Todas as chamadas de API passam pelo `ApiService`
+* Interceptor de autenticação adiciona automaticamente headers
+* Endpoints documentados via Swagger no backend
+
+Exemplo de endpoint consumido:
+
+```
+GET /api/document/
+```
+
+---
+
+## Observações Importantes
+
+* O frontend foi projetado para desacoplamento total do backend
+* É possível substituir ou evoluir a camada de IA sem impacto visual
+* Componentes seguem boas práticas de SOLID e separação de responsabilidades
+
+---
+
+## Considerações Finais
+
+Este frontend foi desenvolvido com foco em clareza, escalabilidade e testabilidade, atendendo plenamente aos critérios de um desafio técnico profissional e facilitando futuras evoluções do sistema.

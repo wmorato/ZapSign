@@ -5,7 +5,7 @@ from .views import ValidateAPIKeyView, RegisterView
 
 urlpatterns = [
     path("validate-key/", ValidateAPIKeyView.as_view(), name="validate-key"),
-    path("auth/login/", LoginView.as_view()),
-    path("auth/login/refresh/", RefreshTokenView.as_view()),
+    path("login/", LoginView.as_view()),
+    path("login/refresh/", RefreshTokenView.as_view()),
     path("register/", RegisterView.as_view(), name="auth_register"),
 ]

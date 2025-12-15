@@ -1,154 +1,280 @@
-# ZapSign Backend - Desafio Técnico
+# ZapSign Backend
 
 ## Visão Geral
 
-Este projeto implementa o backend para o desafio técnico da ZapSign, focado na gestão de documentos, integração com a API ZapSign, análise de conteúdo via Inteligência Artificial (IA) e automações via n8n.
+Este backend foi projetado para ser consumido não apenas pelo frontend Angular, mas também por **terceiros**, **automações (n8n)** e **sistemas externos** que desejem gerar **insights, relatórios e análises inteligentes** a partir de documentos assinados via ZapSign.
 
-A arquitetura segue os princípios SOLID e utiliza Django com Django Rest Framework (DRF), PostgreSQL, Celery e Redis para processamento assíncrono e WebSockets (Channels) para comunicação em tempo real.
+A API expõe endpoints REST, Webhooks e WebSockets, com autenticação via **JWT** (usuários) e **API Keys** (integrações), permitindo fácil integração com pipelines de dados, BI, CRMs, ERPs e ferramentas de automação.
 
-## Stacks Utilizadas
+---
 
-*   **Framework:** Python 3.11, Django 5.2, Django Rest Framework (DRF)
-*   **Banco de Dados:** PostgreSQL
-*   **Assíncrono/Mensageria:** Celery, Redis
-*   **IA:** Google Gemini (padrão) e OpenAI (GPT-4)
-*   **WebSockets:** Django Channels, Redis Channel Layer
-*   **Infraestrutura Local:** Docker, Docker Compose
-*   **Utilitários:** PyPDF2 (extração de texto de PDF)
+## Arquitetura
 
-## Configuração e Setup Local
+* Django + Django REST Framework
+* PostgreSQL
+* Celery + Redis (processamento assíncrono)
+* Django Channels (WebSocket)
+* Integração ZapSign
+* Camada de IA desacoplada e extensível
 
-### Pré-requisitos
+Fluxo resumido:
 
-1.  Docker e Docker Compose instalados.
-2.  Conta no Sandbox da ZapSign para obter o `api_token`.
-3.  Chave de API do Google Gemini ou OpenAI.
+1. Documento é criado
+2. ZapSign gera assinatura
+3. Conteúdo do PDF é extraído
+4. IA analisa o conteúdo
+5. Resultados são persistidos
+6. Eventos são propagados via WebSocket
+7. APIs expõem dados para consumo externo
 
-### 1. Configuração do Ambiente
+---
 
-Crie o arquivo `.env` na pasta `backend/docker/` e preencha as variáveis de ambiente.
+## Exposição de APIs para Terceiros
 
-#### 1.1 Ativação do Ambiente
+### Autenticação por API Key
 
-source venv/Scripts/activate
+Integrações externas devem utilizar **API Keys**, sem necessidade de login ou JWT.
 
-**Caminho do Arquivo:** `backend/docker/.env`
+Header obrigatório:
 
-```bash
-# PostgreSQL
-POSTGRES_DB=zapsign
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_PORT=5433
-
-# Django
-DJANGO_SECRET_KEY=secret-key-alterar-na-producao
-DJANGO_DEBUG=True
-
-# ZapSign Token (Token de Sandbox da ZapSign)
-ZAPSIGN_API_TOKEN=SEU_TOKEN_ZAPSIGN_AQUI
-
-# API Keys para serviços de IA
-GEMINI_API_KEY=SUA_CHAVE_GEMINI_AQUI
-OPENAI_API_KEY=SUA_CHAVE_OPENAI_AQUI
+```
+X-API-KEY: <sua_api_key>
 ```
 
-### 2. Inicialização dos Serviços
+### Geração de API Key (Integrações)
 
-Execute o comando na pasta `backend/docker/`:
-
-```bash
-docker-compose build
-docker-compose up -d
-```
-
-Aguarde alguns minutos para que todos os serviços (`db`, `redis`, `backend`, `worker`, `n8n`) estejam em execução.
-
-### 3. Inicialização de Dados
-
-Execute os comandos na pasta `backend/`:
+O backend possui um comando dedicado para geração de tokens de integração.
 
 ```bash
-docker-compose exec backend python manage.py init_data
+docker compose exec backend python manage.py create_api_key "n8n_automation"
 ```
 
-### 3.1 API Key
+Saída esperada:
 
-Execute os comandos na pasta `backend/`:
+```
+API Key criada para n8n_automation:
+ed124ecbb42a401e5980341251c40de7a4a9649ab921579d0cdb5cb0c029be41
+```
+
+Essa chave pode ser usada por:
+
+* n8n
+* Sistemas externos
+* Scripts de BI
+* Processos de auditoria
+
+---
+
+## Integração com n8n
+
+O projeto já inclui um **fluxo n8n funcional**, localizado em:
+
+```
+backend/Docs/N8N_FLOWS/Envio de Email de Alerta de mensagem.json
+```
+
+### O que esse fluxo faz
+
+* Consulta documentos assinados
+* Gera relatórios diários
+* Envia alertas por e-mail
+* Utiliza os endpoints de automação
+* Usa autenticação por API Key
+
+Este fluxo foi **testado** e pode ser adaptado para:
+
+* Slack
+* WhatsApp
+* CRM
+* ERP
+* Data Warehouse
+
+---
+
+## Endpoints de Automação (Consumo Externo)
+
+### Consultar Análise de Documento
 
 ```bash
-docker-compose exec backend python manage.py create_api_key n8n_automation_key
+curl --location 'http://localhost:8000/api/automations/documents/24/analysis/' \
+--header 'X-API-KEY: SUA_API_KEY'
 ```
 
+Retorna:
 
-O comando `init_data` cria:
-*   Empresas de teste (`Empresa A`, `Empresa B`, etc.).
-*   Usuários de teste (`gerente_a@teste.com`, `assistente_a@teste.com`) com senha `123`.
-*   Associa o `ZAPSIGN_API_TOKEN` à `Empresa A`.
+* Resumo do contrato
+* Pontos de risco
+* Tópicos ausentes
+* Insights jurídicos
 
-O comando `create_api_key` gera a chave para o n8n (exemplo: `ed124ecbb42a401e5980341251c40de7a4a9649ab921579d0cdb5cb0c029be41`).
+---
 
-## Autenticação
-
-### 1. Autenticação de Usuário (Frontend)
-
-Use o endpoint de login para obter o token JWT:
-
-*   **Endpoint:** `POST /auth/login/`
-*   **Corpo:** `{"username": "gerente_a@teste.com", "password": "123"}`
-*   **Uso:** O token de acesso retornado deve ser enviado no header `Authorization: Bearer <token>` para todas as rotas de API (exceto automações e webhook).
-
-### 2. Autenticação de Automação (n8n)
-
-Use a chave de API gerada no passo 3.
-
-*   **Header:** `X-API-KEY: <chave_gerada>`
-*   **Uso:** Necessário para acessar os endpoints em `/api/automations/`.
-
-## Endpoints Principais (API RESTful)
-
-| Módulo | Método | Endpoint | Descrição |
-| :--- | :--- | :--- | :--- |
-| **Auth** | `POST` | `/auth/login/` | Obtém tokens JWT. |
-| **Company** | `GET/PUT` | `/api/company/<id>/` | Gerencia a empresa do usuário logado (inclui `apiToken`). |
-| **Document** | `GET/POST` | `/api/document/` | Cria um novo documento (dispara ZapSign e IA). |
-| **Document** | `GET/PUT/DEL` | `/api/document/<id>/` | Detalhes, atualização e exclusão de documento. |
-| **Document** | `GET` | `/api/document/<id>/pdf/` | Obtém o link de download do PDF assinado. |
-| **Document** | `POST` | `/api/document/<id>/sync/` | Sincroniza manualmente o status com a ZapSign. |
-| **Webhook** | `POST` | `/webhook/zapsign/` | Recebe atualizações de status da ZapSign. |
-
-## Endpoints de Automação (n8n)
-
-Estes endpoints exigem o header `X-API-KEY`.
-
-| Módulo | Método | Endpoint | Descrição |
-| :--- | :--- | :--- | :--- |
-| **Automação** | `GET` | `/api/automations/documents/<id>/analysis/` | Obtém o resultado da análise de IA de um documento. |
-| **Automação** | `POST` | `/api/automations/documents/<id>/reanalyze/` | Dispara uma nova análise de IA para um documento. |
-| **Automação** | `POST` | `/api/automations/reports/` | Gera um relatório de documentos por período e empresa. |
-
-## Lógica de IA Aplicada
-
-A análise de IA é disparada de forma assíncrona (Celery) após a criação de um documento com `url_pdf`.
-
-*   **Processo:** O backend baixa o PDF, extrai o texto com `PyPDF2` e envia o conteúdo para o modelo de IA (Gemini ou OpenAI) usando um prompt estruturado.
-*   **Resultado:** O resultado (`summary`, `missing_topics`, `insights`) é salvo no modelo `DocumentAnalysis` e notificado ao frontend via WebSocket.
-
-## WebSockets (Comunicação em Tempo Real)
-
-O sistema utiliza WebSockets para notificar o frontend sobre eventos assíncronos, eliminando a necessidade de polling.
-
-*   **Detalhe do Documento:** `ws://localhost:8000/ws/document/<document_id>/?token=<JWT>`
-    *   Recebe eventos de `analysis_completed` e `analysis_status_update`.
-*   **Lista de Documentos:** `ws://localhost:8000/ws/document/list/?token=<JWT>`
-    *   Recebe eventos de `document_created`, `document_updated` e `document_deleted`.
-
-## Execução de Testes
-
-Execute os testes unitários e de integração na pasta `backend/`:
+### Reanalisar Documento
 
 ```bash
-docker-compose exec backend pytest
+curl --location --request POST 'http://localhost:8000/api/automations/documents/24/reanalyze/' \
+--header 'X-API-KEY: SUA_API_KEY'
 ```
 
+Utilizado quando:
 
+* Prompt foi alterado
+* Modelo de IA mudou
+* Novas regras de análise foram adicionadas
+
+---
+
+### Relatórios Automatizados
+
+```bash
+curl --location 'http://localhost:8000/api/automations/reports/' \
+--header 'X-API-KEY: SUA_API_KEY' \
+--header 'Content-Type: application/json' \
+--data '{
+  "report_type": "monthly_summary",
+  "start_date": "2025-12-13",
+  "end_date": "2025-12-13",
+  "company_id": 7
+}'
+```
+
+Permite geração de:
+
+* Relatórios mensais
+* Auditorias
+* Dashboards externos
+
+---
+
+## Lógica de IA
+
+### Como funciona
+
+1. PDF é obtido (URL ou Base64)
+2. Texto é extraído
+3. Contexto é montado
+4. Prompt é enviado ao modelo
+5. Resposta é normalizada
+6. Resultado é persistido
+
+### Onde configurar a IA
+
+Arquivo principal:
+
+```
+app/ai/ai_service.py
+```
+
+### Alterar o contexto da análise
+
+O contexto enviado para a IA pode ser ajustado diretamente no prompt base:
+
+* Linguagem jurídica
+* Ênfase em riscos
+* Ênfase em cláusulas abusivas
+* Compliance
+* LGPD
+
+Isso permite criar **perfis de análise** por empresa ou integração.
+
+---
+
+## Adicionar Novos Modelos de IA
+
+O sistema foi desenhado para permitir múltiplos modelos.
+
+Para adicionar um novo:
+
+1. Criar um adapter em `ai_service.py`
+2. Implementar método `analyze(text, context)`
+3. Registrar o modelo por nome
+4. Configurar chave via `.env`
+
+Exemplos suportados:
+
+* Google Gemini
+* OpenAI GPT
+* Azure OpenAI
+* LLM local
+
+---
+
+## WebSocket (Tempo Real)
+
+O backend notifica eventos automaticamente.
+
+### Eventos disponíveis
+
+* `document_created`
+* `document_updated`
+* `document_deleted`
+* `analysis_completed`
+* `analysis_failed`
+
+### Uso
+
+* Frontend em tempo real
+* Dashboards externos
+* Painéis de monitoramento
+
+---
+
+## Webhook ZapSign
+
+Endpoint:
+
+```
+POST /webhook/zapsign/
+```
+
+Utilizado para:
+
+* Atualizar status do documento
+* Atualizar status de signatários
+* Salvar link final do PDF assinado
+
+---
+
+## Swagger e OpenAPI
+
+### Swagger UI
+
+```
+http://localhost:8000/api/docs/
+```
+
+### Schema JSON (Postman)
+
+```
+http://localhost:8000/api/schema.json
+```
+
+---
+
+## Testes
+
+```bash
+pytest
+pytest --cov=app --cov-report=html
+```
+
+Cobertura atual superior a **70%**, incluindo:
+
+* IA
+* Automações
+* Webhooks
+* Autenticação
+
+---
+
+## Conclusão
+
+Este backend foi projetado para:
+
+* Ser consumido por múltiplos sistemas
+* Escalar integrações
+* Facilitar automações
+* Gerar insights de alto valor
+* Permitir evolução contínua da IA
+
+Ele atende cenários reais de produção, auditoria e análise inteligente de contratos.
