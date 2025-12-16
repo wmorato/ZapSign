@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama de Sequência - Criação de Documento</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+        window.mermaid = mermaid;
+    </script>
+    <style>
+        /* Estilos CSS do arquivo original mantidos */
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #333; }
+        .controls { margin-bottom: 20px; display: flex; gap: 10px; }
+        button { padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+        button.active { background: #004494; border: 2px solid #002a5c; }
+        #diagram-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 1200px; overflow-x: auto; }
+        .explanation { margin-top: 20px; max-width: 800px; background: #e6f7ff; padding: 15px; border-left: 5px solid #007bff; border-radius: 4px; }
+        .django-concept { font-weight: bold; color: #d63384; }
+    </style>
+</head>
+<body>
+
+    <h1>Fluxo de Criação de Documento</h1>
+
+    <div class="controls">
+        <button onclick="renderFlow('create')" class="active" id="btn-create">Detalhes do Fluxo Principal</button>
+    </div>
+
+    <div id="explanation" class="explanation">
+        Selecione um fluxo acima para ver a explicação técnica.
+    </div>
+
+    <div id="diagram-container">
+        <div class="mermaid" id="mermaid-chart">
+            </div>
+    </div>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+        const flows = {
+            create: {
+                text: `
+                Este fluxo detalha a criação de um documento, envolvendo o registro inicial no banco de dados e a integração com a API externa (ZapSign) para obter metadados essenciais.
+                <br><br>
+                A persistência dos dados iniciais no <span class="django-concept">PostgreSQL</span> ocorre antes da chamada à API externa, garantindo um registro imediato.
+                `,
+                diagram: `
+sequenceDiagram
+    autonumber
+    actor Usuario
+    participant Frontend as Frontend (Angular)
+    participant Backend as Backend (Django)
+    participant DB as PostgreSQL
+    participant ZapSign as ZapSignAPI (Sandbox)
+
+    Note over Usuario, Frontend: Início: Inserção de Dados
+    Usuario->>Frontend: Insere detalhes do documento e informações do signatário
+
+    Note over Frontend, Backend: Solicitação de Criação
+    Frontend->>Backend: Envia solicitação de criação de documento
+    
+    activate Backend
+    
+    Note over Backend, DB: 1. Armazenamento Inicial
+    Backend->>DB: Armazena dados iniciais do documento (sem resposta da API)
+    DB-->>Backend: Confirmação de armazenamento
+    
+    Note over Backend, ZapSign: 2. Integração com API Externa
+    Backend->>ZapSign: Envia solicitação de criação de documento (com detalhes do signatário e URL do PDF)
+    ZapSign-->>Backend: Retorna detalhes do documento (geren. id, token, status)
+    
+    Note over Backend, DB: 3. Atualização do Documento
+    Backend->>DB: Atualiza documento com dados da resposta da API
+    DB-->>Backend: Confirmação de atualização
+    
+    Note over Backend, Frontend: 4. Resposta Final e Exibição
+    Backend-->>Frontend: Retorno resposta de sucesso com a lista de documentos atualizada
+    deactivate Backend
+    
+    Frontend->>Usuario: Exibe lista de documentos atualizada com o novo documento
+                `
+            }
+        };
+
+        window.renderFlow = async (flowKey) => {
+            // Update buttons
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            // Note: Só há um botão neste caso, mas a estrutura é mantida
+            const flowButton = document.getElementById(`btn-${flowKey}`);
+            if (flowButton) {
+                flowButton.classList.add('active');
+            }
+
+            // Update Text
+            const explanationDiv = document.getElementById('explanation');
+            explanationDiv.innerHTML = flows[flowKey].text;
+
+            // Render Mermaid
+            const container = document.getElementById('mermaid-chart');
+            container.removeAttribute('data-processed'); // Reset mermaid
+            container.innerHTML = flows[flowKey].diagram;
+            
+            await mermaid.run({
+                nodes: [container]
+            });
+        };
+
+        // Init
+        window.renderFlow('create');
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Fluxo Completo ZapSign</title>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+        window.mermaid = mermaid;
+    </script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f4f9;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #333; }
+        #diagram-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 1200px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Fluxo Completo do Documento ZapSign</h1>
+
+<div id="diagram-container">
+<div class="mermaid">
+
+sequenceDiagram
+    autonumber
+
+    actor Usuario
+    participant Frontend as Frontend Angular
+    participant Backend as Backend Django DRF
+    participant DB as PostgreSQL
+    participant ZapSign as ZapSign API
+    participant Celery as Celery Worker
+    participant AI as IA Analise
+    participant WS as WebSocket Channels
+    participant Webhook as Webhook
+
+    Note over Usuario,Frontend: Usuario envia dados e PDF
+    Usuario->>Frontend: Preenche formulario
+    Frontend->>Backend: POST /api/document
+
+    activate Backend
+    Note over Backend,DB: Documento criado como pending
+    Backend->>DB: Salva documento
+    Backend->>ZapSign: Cria documento externo
+    ZapSign-->>Backend: Retorna token
+    Backend->>DB: Atualiza token
+    Backend->>Celery: Enfileira analise IA
+    Backend-->>Frontend: 201 Created
+    deactivate Backend
+
+    Frontend->>WS: Abre conexao WebSocket
+
+    Note over Celery,AI: Processamento assincrono
+    Celery->>AI: Analisa documento
+    AI-->>Celery: Retorna insights
+    Celery->>DB: Salva resultado
+    Celery->>WS: analysis_completed
+    WS-->>Frontend: Atualiza tela
+
+    Note over ZapSign,Webhook: Documento assinado
+    ZapSign->>Webhook: POST /webhook signed
+    Webhook->>DB: Atualiza status
+    Webhook->>WS: document_updated
+    WS-->>Frontend: Atualiza status final
+
+    Frontend->>Usuario: Documento finalizado
+
+</div>
+</div>
+
+</body>
+</html>

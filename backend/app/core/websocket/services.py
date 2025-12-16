@@ -1,5 +1,4 @@
 # D:\Projetos\DesafioTecnico\ZapSign\backend\app\core\websocket\services.py
-import json
 import logging
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
